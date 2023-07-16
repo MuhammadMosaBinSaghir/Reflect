@@ -219,7 +219,6 @@ struct Dropbox: View {
     }
 }
 
-// LINELIMT FOR TEXT
 struct Documents: View {
     @EnvironmentObject var records: Records
     var body: some View {
@@ -236,6 +235,7 @@ struct Documents: View {
     
     @ViewBuilder func Card(_ statement: Statement) -> some View {
         //random order
+        //linelimit for text
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(statement.name.capitalized)")
@@ -265,56 +265,6 @@ struct Documents: View {
     }
 
 }
-
-/*
-struct Documents: View {
-    @EnvironmentObject var records: Records
-    
-    @State private var hovered: Statement?
-    @State private var selected: Statement?
-    
-    func highlight(_ statement: Statement) -> Bool { (selected == statement)||(hovered == statement) }
-    
-    func delete() {
-        if let selected, let index = records.statements.firstIndex(of: selected) {
-                records.statements.remove(at: index)
-        }
-    }
-    
-    var body: some View {
-        List(selection: $selected) {
-            ForEach(records.statements, id: \.self) { statement in
-                HStack{
-                    Image(systemName: "doc.plaintext")
-                        .font(.title)
-                        .imageScale(.large)
-                        .symbolVariant(.fill)
-                        .symbolRenderingMode(.monochrome)
-                        .foregroundColor(highlight(statement) ? .primary : .gray)
-                        .rotation3DEffect(highlight(statement) ? Angle(degrees: 10) : .zero, axis: (x: 1, y: 0, z: 0))
-                        .padding(2)
-                    VStack(alignment: .leading){
-                        Text("\(statement.name).\(statement.type)")
-                        Text("added \(statement.date.formatted(date: .long, time: .omitted))")
-                    }
-                    .foregroundColor(highlight(statement) ? .primary : .gray )
-                    Spacer()
-                }
-                .onHover {
-                    if $0 { hovered = statement }
-                    else { hovered = nil }
-                }
-                .animation(.reactive, value: highlight(statement))
-            }
-        }
-        .background { Color.primary.opacity(0.05) }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .scrollIndicators(.hidden)
-    }
-}
-*/
 
 struct Modal: View {
     @EnvironmentObject var records: Records
