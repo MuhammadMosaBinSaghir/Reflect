@@ -12,53 +12,6 @@ struct Dropbox: View {
     
     enum Issue: Error { case undroppable, unimportable, undecodable, duplicate, empty, unexplained }
     
-    @ViewBuilder func Bar() -> some View {
-        HStack(alignment: .bottom, spacing: 0) {
-            Text("**Issues**")
-            Spacer()
-            if (problems.count > 1 && expand) {
-                HStack(alignment: .center, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Text("Collapse")
-                        Image(systemName: "chevron.down")
-                    }
-                    .padding(4)
-                    .foregroundColor(.dark)
-                    .background(Container())
-                    .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
-                    .onTapGesture { expand = false }
-                    Trash()
-                }
-                .matchedGeometryEffect(id: "bar buttons", in: namespace, properties: .position, anchor: .trailing)
-            } else {
-                Trash()
-                    .matchedGeometryEffect(id: "bar buttons", in: namespace, properties: .position, anchor: .trailing)
-            }
-        }
-        .font(.system(size: 12))
-        .padding([.bottom, .leading], 8)
-    }
-    
-    @ViewBuilder func Cards() -> some View {
-        if (!expand) {
-            ZStack {
-                Card(problems.first ?? Problem(file: "file", type: "type", issue: "issue"))
-            }
-            .onTapGesture { if problems.count > 1 { expand = true } }
-            .matchedGeometryEffect(id: "issues", in: namespace, properties: .position, anchor: .top)
-        } else {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 8) {
-                    ForEach(problems, id: \.file) { problem in
-                        Card(problem)
-                    }
-                }
-            }
-            .frame(height: 136)
-            .matchedGeometryEffect(id: "issues", in: namespace, properties: .position, anchor: .top)
-        }
-    }
-    
     var body: some View {
         VStack {
             Container()
@@ -103,7 +56,35 @@ struct Dropbox: View {
         }
     }
     
-    @ViewBuilder func Trash() -> some View {
+    @ViewBuilder private func Bar() -> some View {
+        HStack(alignment: .bottom, spacing: 0) {
+            Text("**Issues**")
+            Spacer()
+            if (problems.count > 1 && expand) {
+                HStack(alignment: .center, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Text("Collapse")
+                        Image(systemName: "chevron.down")
+                    }
+                    .padding(4)
+                    .foregroundColor(.dark)
+                    .background(Container())
+                    .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
+                    .onTapGesture { expand = false }
+                    Trash()
+                }
+                .matchedGeometryEffect(id: "bar buttons", in: namespace, properties: .position, anchor: .trailing)
+            } else {
+                Trash()
+                    .matchedGeometryEffect(id: "bar buttons", in: namespace, properties: .position, anchor: .trailing)
+            }
+        }
+        .font(.system(size: 12))
+        .padding([.bottom, .leading], 8)
+    }
+    
+    
+    @ViewBuilder private func Trash() -> some View {
         HStack(alignment: .center, spacing: 8) {
             HStack(spacing: 4) {
                 Text("Clear")
@@ -118,20 +99,30 @@ struct Dropbox: View {
         }
     }
     
-    @ViewBuilder func Folder() -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 2)
-                .frame(width: 36, height: 20)
-                .offset(y: -8)
-                .foregroundStyle(.primary)
-            Image(systemName: "questionmark.folder")
-                .font(.system(size: 36))
-                .symbolVariant(.fill)
-                .foregroundStyle(.primary, LinearGradient.themed)
+    @ViewBuilder private func Cards() -> some View {
+        if (!expand) {
+            ZStack {
+                Card(problems.first ?? Problem(file: "file", type: "type", issue: "issue"))
+            }
+            .onTapGesture { if problems.count > 1 { expand = true } }
+            .matchedGeometryEffect(id: "issues", in: namespace, properties: .position, anchor: .top)
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(problems, id: \.file) { problem in
+                        Card(problem)
+                    }
+                }
+                .scrollTargetLayout()
+            }
+            .frame(height: 136)
+            .scrollIndicators(.hidden)
+            .scrollTargetBehavior(.viewAligned)
+            .matchedGeometryEffect(id: "issues", in: namespace, properties: .position, anchor: .top)
         }
     }
     
-    @ViewBuilder func Card(_ problem: Problem) -> some View {
+    @ViewBuilder private func Card(_ problem: Problem) -> some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(problem.file.capitalized)
@@ -149,6 +140,19 @@ struct Dropbox: View {
         .padding(.trailing, 4)
         .padding([.top, .bottom, .leading], 16)
         .background(Container())
+    }
+    
+    @ViewBuilder private func Folder() -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 2)
+                .frame(width: 36, height: 20)
+                .offset(y: -8)
+                .foregroundStyle(.primary)
+            Image(systemName: "questionmark.folder")
+                .font(.system(size: 36))
+                .symbolVariant(.fill)
+                .foregroundStyle(.primary, LinearGradient.themed)
+        }
     }
 
     private func file(from url: URL) -> (name: String, type: String) {
@@ -221,25 +225,37 @@ struct Dropbox: View {
 
 struct Documents: View {
     @EnvironmentObject var records: Records
+    @State var selected: Statement.ID?
+    
     var body: some View {
         GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 8) {
-                    ForEach(records.statements, id: \.id) { statement in
-                        Card(statement)
-                    }
-                }
+            HStack(spacing: 8) {
+                Cards()
+                Paddles()
             }
         }
     }
     
-    @ViewBuilder func Card(_ statement: Statement) -> some View {
-        //random order
-        //linelimit for text
+    @ViewBuilder private func Cards() -> some View {
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(records.statements, id: \.id) { statement in
+                    Card(statement)
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollIndicators(.never)
+        .scrollPosition(id: $selected)
+        .scrollTargetBehavior(.viewAligned)
+        .onAppear { selected = records.statements.first?.id }
+    }
+    
+    @ViewBuilder private func Card(_ statement: Statement) -> some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(statement.name.capitalized)")
-                    .foregroundColor(.dark)
+                    .foregroundStyle(statement.id == selected ? Color.dark : .primary)
                 Text("\(statement.date.formatted(date: .abbreviated, time: .omitted))")
             }
             .frame(width: 80, height: 32, alignment: .leading)
@@ -255,15 +271,33 @@ struct Documents: View {
                         }
                     }
                 }
-            Puller()
-                .padding(.leading, 8)
+            Puller().padding(.leading, 8)
         }
         .font(.system(size: 12))
         .padding(.trailing, 4)
         .padding([.top, .bottom, .leading], 16)
         .background(Container())
     }
-
+    
+    @ViewBuilder private func Paddles() -> some View {
+        VStack {
+            Paddle(edge: .top) { previous() }
+            Spacer()
+            Paddle(edge: .bottom) { next() }
+        }
+    }
+    
+    private func previous() {
+        guard selected != records.statements.first?.id else { return }
+        guard let index = records.statements.firstIndex(where: { $0.id == selected }) else { return }
+        withAnimation(.reactive) { selected = records.statements[index - 1].id }
+    }
+    
+    private func next() {
+        guard selected != records.statements.last?.id else { return }
+        guard let index = records.statements.firstIndex(where: { $0.id == selected }) else { return }
+        withAnimation(.reactive) { selected = records.statements[index + 1].id }
+    }
 }
 
 struct Modal: View {

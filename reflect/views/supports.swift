@@ -32,6 +32,37 @@ struct Puller: View {
     }
 }
 
+struct Paddle: View {
+    let edge: VerticalEdge
+    let action: () -> Void
+    
+    var label: String {
+        switch edge {
+        case .top: "Upwards"
+        case .bottom: "Downwards"
+        }
+    }
+    
+    var icon: String {
+        switch edge {
+        case .top: "chevron.up"
+        case .bottom: "chevron.down"
+        }
+    }
+    
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            Label(label, systemImage: icon)
+        }
+        .imageScale(.large)
+        .buttonStyle(.plain)
+        .labelStyle(.iconOnly)
+        .foregroundStyle(Color.dark)
+    }
+}
+
 struct TagStack: Layout {
     var spacing: CGFloat? = nil
     

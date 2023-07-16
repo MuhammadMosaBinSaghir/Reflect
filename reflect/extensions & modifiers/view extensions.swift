@@ -33,7 +33,7 @@ extension CGFloat {
     struct Width {
         let sidebar: CGFloat = 192.0
         let content: CGFloat = 256.0
-        let modal: CGFloat = 344.0
+        let modal: CGFloat = 368.0
         var total: CGFloat { sidebar + content + modal }
     }
     
