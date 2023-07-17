@@ -99,7 +99,7 @@ struct TagStack: Layout {
     }
     
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
-        guard !subviews.isEmpty else { return .zero }
+        guard !subviews.isEmpty else { return cache.bounds }
         guard cache.fittings < 2 else { return cache.bounds }
         let bounds = proposal.replacingUnspecifiedDimensions().width
         guard (bounds != .infinity && bounds != .zero) else { return .zero }

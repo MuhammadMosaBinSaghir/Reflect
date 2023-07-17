@@ -59,6 +59,7 @@ struct Dropbox: View {
     @ViewBuilder private func Bar() -> some View {
         HStack(alignment: .bottom, spacing: 0) {
             Text("**Issues**")
+                .font(.title3.bold())
             Spacer()
             if (problems.count > 1 && expand) {
                 HStack(alignment: .center, spacing: 8) {
@@ -225,79 +226,100 @@ struct Dropbox: View {
 
 struct Documents: View {
     @EnvironmentObject var records: Records
-    @State var selected: Statement.ID?
+    @State var target: Statement.ID?
+    
+    var selected: Statement? {
+        guard let id = target else { return nil }
+        guard let selected = find(statement: .current, from: id) else { return nil }
+        return selected
+    }
+    
+    enum Target: Error { case previous, current, next }
     
     var body: some View {
         GeometryReader { proxy in
-            HStack(spacing: 8) {
-                Cards()
-                Paddles()
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Paddle(edge: .leading) { previous() }
+                    HStack(alignment: .center, spacing: 4) {
+                        Text("Statements")
+                            .font(.title3.bold())
+                        Spacer()
+                    }
+                    Paddle(edge: .trailing) { next() }
+                }
+                Cards(frame: proxy.size)
+                Container()
             }
         }
+        .animation(.reactive, value: selected)
     }
     
-    @ViewBuilder private func Cards() -> some View {
-        ScrollView {
-            VStack(spacing: 8) {
+    @ViewBuilder private func Cards(frame size: CGSize) -> some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
                 ForEach(records.statements, id: \.id) { statement in
                     Card(statement)
+                        .frame(width: (320/416)*size.width)
                 }
             }
+            .frame(height: 66)
             .scrollTargetLayout()
         }
         .scrollIndicators(.never)
-        .scrollPosition(id: $selected)
+        .scrollPosition(id: $target)
         .scrollTargetBehavior(.viewAligned)
-        .onAppear { selected = records.statements.first?.id }
+        .onAppear { target = records.statements.first?.id }
     }
-    
+
     @ViewBuilder private func Card(_ statement: Statement) -> some View {
-        HStack(alignment: .center) {
+        HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(statement.name.capitalized)")
-                    .foregroundStyle(statement.id == selected ? Color.dark : .primary)
+                    .foregroundStyle(statement.id == target ? Color.dark : .primary)
                 Text("\(statement.date.formatted(date: .abbreviated, time: .omitted))")
             }
             .frame(width: 80, height: 32, alignment: .leading)
-            .padding(.vertical, 5)
-            .padding(.trailing, 8)
-            Spacer()
-                .overlay {
-                    TagStack(spacing: 4) {
-                        ForEach(statement.attributes, id: \.self) { attribute in
-                            Text(attribute.constraint.name)
-                                .font(.system(size: 12))
-                                .capsuled(gradient: attribute.constrained ? .dark : .grayed)
-                        }
-                    }
+            TagStack(spacing: 4) {
+                ForEach(statement.attributes, id: \.self) { attribute in
+                    Text(attribute.constraint.name)
+                        .font(.system(size: 12))
+                        .capsuled(gradient: attribute.constrained ? .dark : .grayed)
                 }
-            Puller().padding(.leading, 8)
+            }
+            .frame(width: 192)
+            Puller()
         }
+        .padding(8)
         .font(.system(size: 12))
-        .padding(.trailing, 4)
-        .padding([.top, .bottom, .leading], 16)
         .background(Container())
     }
     
-    @ViewBuilder private func Paddles() -> some View {
-        VStack {
-            Paddle(edge: .top) { previous() }
-            Spacer()
-            Paddle(edge: .bottom) { next() }
+    private func find(statement: Target, from id: Statement.ID) -> Statement? {
+        guard let index = records.statements.firstIndex(where: { $0.id == id }) else { return nil}
+        switch statement {
+        case .previous:
+            guard target != records.statements.first?.id else { return nil }
+            return records.statements[index - 1]
+        case .current: return records.statements[index]
+        case .next:
+            guard target != records.statements.last?.id else { return nil }
+            return records.statements[index + 1]
         }
     }
     
     private func previous() {
-        guard selected != records.statements.first?.id else { return }
-        guard let index = records.statements.firstIndex(where: { $0.id == selected }) else { return }
-        withAnimation(.reactive) { selected = records.statements[index - 1].id }
+        guard let current = target else { return }
+        guard let previous = find(statement: .previous, from: current) else { return }
+        target = previous.id
     }
     
     private func next() {
-        guard selected != records.statements.last?.id else { return }
-        guard let index = records.statements.firstIndex(where: { $0.id == selected }) else { return }
-        withAnimation(.reactive) { selected = records.statements[index + 1].id }
+        guard let current = target else { return }
+        guard let next = find(statement: .next, from: current) else { return }
+        target = next.id
     }
+
 }
 
 struct Modal: View {
@@ -313,10 +335,11 @@ struct Modal: View {
             if !records.statements.isEmpty { Documents().transition(.move(edge: .top).combined(with: .opacity)) }
             Dropbox(expand: $expand, errored: $errored, problems: $problems)
         }
+        .padding(8)
         .animation(.reactive, value: expand)
         .animation(.reactive, value: errored)
         .animation(.reactive, value: problems)
         .animation(.reactive, value: records.statements)
-        .padding(8)
+
     }
 }
