@@ -33,20 +33,20 @@ struct Puller: View {
 }
 
 struct Paddle: View {
-    let edge: VerticalEdge
+    let edge: HorizontalEdge
     let action: () -> Void
     
     var label: String {
         switch edge {
-        case .top: "Upwards"
-        case .bottom: "Downwards"
+        case .leading: "Forwards"
+        case .trailing: "Backwards"
         }
     }
     
     var icon: String {
         switch edge {
-        case .top: "chevron.up"
-        case .bottom: "chevron.down"
+        case .leading: "chevron.left"
+        case .trailing: "chevron.right"
         }
     }
     
@@ -99,7 +99,7 @@ struct TagStack: Layout {
     }
     
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
-        guard !subviews.isEmpty else { return .zero }
+        guard !subviews.isEmpty else { return cache.bounds }
         guard cache.fittings < 2 else { return cache.bounds }
         let bounds = proposal.replacingUnspecifiedDimensions().width
         guard (bounds != .infinity && bounds != .zero) else { return .zero }
