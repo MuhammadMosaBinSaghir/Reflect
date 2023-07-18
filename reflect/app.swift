@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct Statements: App {
+struct Reflect: App {
     var body: some Scene {
         WindowGroup {
             Window()

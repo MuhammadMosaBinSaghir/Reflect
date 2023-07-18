@@ -229,7 +229,7 @@ struct Documents: View {
     @State var target: Statement.ID?
     
     var selected: Statement? {
-        guard let id = target else { return nil }
+        guard let id = target else { print("selected, no target"); return nil }
         guard let selected = find(statement: .current, from: id) else { return nil }
         return selected
     }
@@ -252,28 +252,30 @@ struct Documents: View {
                 Container()
             }
         }
-        .animation(.reactive, value: selected)
+        //.animation(.reactive, value: selected)
     }
     
     @ViewBuilder private func Cards(frame size: CGSize) -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
-                ForEach(records.statements, id: \.id) { statement in
+                ForEach(records.statements) { statement in
                     Card(statement)
-                        .frame(width: (320/416)*size.width)
+                        .frame(width: 344)
                 }
             }
             .frame(height: 66)
             .scrollTargetLayout()
         }
-        .scrollIndicators(.never)
-        .scrollPosition(id: $target)
         .scrollTargetBehavior(.viewAligned)
-        .onAppear { target = records.statements.first?.id }
+        .scrollPosition(id: $target)
+        .scrollIndicators(.never)
+        .onAppear { target = records.statements.first?.id; print("on appear \(selected?.name ?? "nil"), id: \(target?.uuidString ?? "nil")")}
+        .onChange(of: records.statements.count) { target = records.statements.last?.id }
     }
 
     @ViewBuilder private func Card(_ statement: Statement) -> some View {
         HStack(spacing: 8) {
+            Puller()
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(statement.name.capitalized)")
                     .foregroundStyle(statement.id == target ? Color.dark : .primary)
@@ -296,28 +298,28 @@ struct Documents: View {
     }
     
     private func find(statement: Target, from id: Statement.ID) -> Statement? {
-        guard let index = records.statements.firstIndex(where: { $0.id == id }) else { return nil}
+        guard let index = records.statements.firstIndex(where: { $0.id == id }) else {  print("could not find, returned"); return nil }
         switch statement {
         case .previous:
-            guard target != records.statements.first?.id else { return nil }
+            guard target != records.statements.first?.id else { print("find .previous, returned"); return nil }
             return records.statements[index - 1]
         case .current: return records.statements[index]
         case .next:
-            guard target != records.statements.last?.id else { return nil }
+            guard target != records.statements.last?.id else {  print("find .next, returned"); return nil }
             return records.statements[index + 1]
         }
     }
     
     private func previous() {
-        guard let current = target else { return }
+        guard let current = target else { print("previous() no target"); return }
         guard let previous = find(statement: .previous, from: current) else { return }
-        target = previous.id
+        target = previous.id  //withAnimation(.smooth) { target = previous.id  }
     }
     
     private func next() {
-        guard let current = target else { return }
+        guard let current = target else { print("next() no target"); return }
         guard let next = find(statement: .next, from: current) else { return }
-        target = next.id
+        target = next.id  //withAnimation(.smooth) { target = next.id }
     }
 
 }

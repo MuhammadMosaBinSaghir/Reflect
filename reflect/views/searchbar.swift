@@ -11,7 +11,6 @@ struct Searchbar: View {
                 .font(.title)
                 .foregroundColor(.primary)
                 .padding(16)
-            
             Button {
                 popover.toggle()
             } label: {
