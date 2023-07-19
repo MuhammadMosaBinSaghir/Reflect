@@ -27,8 +27,8 @@ struct Puller: View {
             Image(systemName: "ellipsis")
                 .rotationEffect(.degrees(90))
         }
-        .frame(width: 16, height: 32)
         .foregroundStyle(.primary.opacity(0.5))
+        .frame(width: 16, height: 32)
     }
 }
 
@@ -60,6 +60,7 @@ struct Paddle: View {
         .buttonStyle(.plain)
         .labelStyle(.iconOnly)
         .foregroundStyle(Color.dark)
+        .buttonRepeatBehavior(.enabled)
     }
 }
 
@@ -182,7 +183,6 @@ struct TagStack: Layout {
 }
 
 struct PolygonalStack: Layout {
-    //Rectangles or Squares may overlap
     var center: Bool = false
     var offset: Angle = .zero
     
@@ -249,3 +249,31 @@ struct PolygonalStack: Layout {
     }
 }
 
+struct CenteredScrollTargetBehavior: ScrollTargetBehavior {
+    func updateTarget(_ target: inout ScrollTarget, context: TargetContext) {
+        enum Direction { case left, right }
+        enum Position { case beginning, middle, end }
+        
+        let position: Position = switch(target.rect.origin) {
+        case .zero: .beginning
+        case CGPoint(x: context.contentSize.width - target.rect.width, y: .zero): .end
+        default: .middle
+        }
+        
+        let direction: Direction = if (context.velocity.dx < 0) { .left } else { .right }
+        
+        switch(position) {
+        case .beginning:
+            switch(direction) {
+            case .left: target.anchor = .leading
+            case .right: target.anchor = .center
+            }
+        case .middle: target.anchor = .center
+        case .end:
+            switch(direction) {
+            case .left: target.anchor = .center
+            case .right: target.anchor = .trailing
+            }
+        }
+    }
+}
