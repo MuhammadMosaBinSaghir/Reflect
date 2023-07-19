@@ -19,7 +19,7 @@ struct Searchbar: View {
                     .imageScale(.large)
                     .symbolVariant(.fill)
                     .symbolRenderingMode(.hierarchical)
-                    .animation(.reactive, value: popover)
+                    .animation(.transition, value: popover)
             }
             .buttonStyle(.plain)
             .padding(8)

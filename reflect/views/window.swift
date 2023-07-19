@@ -38,8 +38,8 @@ struct Dashboard<Searchbar: View, Sidebar: View, Contents: View, Modal: View>: V
                                 .transition(.move(edge: .trailing))
                         }
                     }
-                    .animation(.reactive, value: popover)
-                    .animation(.easeInOut, value: expanded(for: geometry.size.width))
+                    .animation(.transition, value: popover)
+                    .animation(.resizing, value: expanded(for: geometry.size.width))
                 }
             }
         }
@@ -64,8 +64,6 @@ struct Dashboard<Searchbar: View, Sidebar: View, Contents: View, Modal: View>: V
 }
 
 struct Window: View {
-    @StateObject private var records = Records()
-    
     @State private var popover: Bool = false
     @State private var search: String = ""
     
@@ -80,6 +78,5 @@ struct Window: View {
         }, modal: {
             Modal()
         })
-        .environmentObject(records)
     }
 }

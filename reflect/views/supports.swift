@@ -183,7 +183,6 @@ struct TagStack: Layout {
 }
 
 struct PolygonalStack: Layout {
-    //Rectangles or Squares may overlap
     var center: Bool = false
     var offset: Angle = .zero
     
@@ -255,8 +254,6 @@ struct CenteredScrollTargetBehavior: ScrollTargetBehavior {
         enum Direction { case left, right }
         enum Position { case beginning, middle, end }
         
-        print("update target, anchor: \(String(describing: target.anchor)), contentsize width: \(context.contentSize.width), target width: \(target.rect.width)")
-        
         let position: Position = switch(target.rect.origin) {
         case .zero: .beginning
         case CGPoint(x: context.contentSize.width - target.rect.width, y: .zero): .end
@@ -268,14 +265,14 @@ struct CenteredScrollTargetBehavior: ScrollTargetBehavior {
         switch(position) {
         case .beginning:
             switch(direction) {
-            case .left: target.anchor = .leading; print("anchor: \(String(describing: target.anchor)), beginning, leading\n")
-            case .right: target.anchor = .center; print("anchor: \(String(describing: target.anchor)), beginning, center\n")
+            case .left: target.anchor = .leading
+            case .right: target.anchor = .center
             }
-        case .middle: target.anchor = .center; print("anchor: \(String(describing: target.anchor)), middle, target.origin: \(target.rect.origin)\n")
+        case .middle: target.anchor = .center
         case .end:
             switch(direction) {
-            case .left: target.anchor = .center; print("anchor: \(String(describing: target.anchor)), end, center\n")
-            case .right: target.anchor = .trailing; print("anchor: \(String(describing: target.anchor)), end, trailing\n")
+            case .left: target.anchor = .center
+            case .right: target.anchor = .trailing
             }
         }
     }
