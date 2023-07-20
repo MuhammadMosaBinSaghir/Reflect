@@ -25,14 +25,17 @@ extension CGFloat {
     static let height = Height()
 }
 
-extension Color {
-    static let light = cyan
-    static let dark = blue
+extension ShapeStyle where Self == Color {
+    static var light: Color { .cyan }
+    static var dark: Color { .blue }
+    static var linearDark: LinearGradient { .init(colors: [.dark, .dark], startPoint: .leading, endPoint: .trailing) }
+    static var linearLight: LinearGradient { .init(colors: [.light, .light], startPoint: .leading, endPoint: .trailing) }
+    static var linearThemed: LinearGradient { .init(colors: [.dark, .light], startPoint: .leading, endPoint: .trailing) }
+    static var linearGrayed: LinearGradient { .init(colors: [.gray.opacity(0.5), .gray.opacity(0.75)], startPoint: .leading, endPoint: .trailing) }
 }
 
-extension LinearGradient {
-    static let dark = LinearGradient(colors: [.dark, .dark], startPoint: .leading, endPoint: .trailing)
-    static let light = LinearGradient(colors: [.light, .light], startPoint: .leading, endPoint: .trailing)
-    static let themed = LinearGradient(colors: [.dark, .light], startPoint: .leading, endPoint: .trailing)
-    static let grayed = LinearGradient(colors: [.gray.opacity(0.5), .gray.opacity(0.75)], startPoint: .leading, endPoint: .trailing)
+extension Font {
+    static let content: Font = .body
+    static let header: Font = .title3.bold()
+    static let search: Font = .title
 }

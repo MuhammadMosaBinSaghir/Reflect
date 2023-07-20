@@ -59,7 +59,7 @@ struct Paddle: View {
         .imageScale(.large)
         .buttonStyle(.plain)
         .labelStyle(.iconOnly)
-        .foregroundStyle(Color.dark)
+        .foregroundStyle(.dark)
         .buttonRepeatBehavior(.enabled)
     }
 }

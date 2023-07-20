@@ -8,14 +8,14 @@ struct Searchbar: View {
         HStack {
             TextField("Search", text: $search)
                 .textFieldStyle(.plain)
-                .font(.title)
-                .foregroundColor(.primary)
+                .font(.search)
+                .foregroundStyle(.primary)
                 .padding(16)
             Button {
                 popover.toggle()
             } label: {
                 Image(systemName: popover ? "tray" : "tray.full")
-                    .font(.headline)
+                    .font(.header)
                     .imageScale(.large)
                     .symbolVariant(.fill)
                     .symbolRenderingMode(.hierarchical)

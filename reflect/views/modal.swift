@@ -4,9 +4,9 @@ struct Dropbox: View {
     @Environment(\.records) private var records
     
     @Binding var expand: Bool
+    @State private var imported: Bool = false
     
     @Namespace private var namespace
-    @State private var imported: Bool = false
 
     var body: some View {
         VStack {
@@ -17,10 +17,10 @@ struct Dropbox: View {
                         HStack(spacing: 0) {
                             Text("Upload")
                                 .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
-                                .foregroundStyle(Color.dark)
+                                .foregroundStyle(.dark)
                                 .onTapGesture { imported = true }
                             Text(" or Drop Files")
-                        }.font(.system(size: 12))
+                        }.font(.content)
                     }
                 }
                 .frame(minHeight: 136)
@@ -49,7 +49,7 @@ struct Dropbox: View {
     @ViewBuilder private func Bar() -> some View {
         HStack(alignment: .bottom, spacing: 0) {
             Text("Errors")
-                .font(.title3.bold())
+                .font(.header)
             Spacer()
             if (records.errors.count > 1 && expand) {
                 HStack(alignment: .center, spacing: 8) {
@@ -58,7 +58,7 @@ struct Dropbox: View {
                         Image(systemName: "chevron.down")
                     }
                     .padding(4)
-                    .foregroundColor(.dark)
+                    .foregroundStyle(.dark)
                     .background(Container())
                     .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
                     .onTapGesture { expand = false }
@@ -70,7 +70,7 @@ struct Dropbox: View {
                     .matchedGeometryEffect(id: "bar buttons", in: namespace, properties: .position, anchor: .trailing)
             }
         }
-        .font(.system(size: 12))
+        .font(.content)
         .padding([.bottom, .leading], 8)
     }
     
@@ -117,33 +117,29 @@ struct Dropbox: View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(statement.name)
-                    .foregroundStyle(Color.dark)
+                    .foregroundStyle(.dark)
                 Text(statement.type)
             }
             .frame(width: 80, height: 32, alignment: .leading)
             .padding(.trailing, 8)
             Text(statement.error?.rawValue ?? "invalid error")
-                .capsuled(gradient: LinearGradient.dark)
+                .capsuled(background: .init(.linearDark))
             Spacer()
             Puller()
         }
-        .font(.system(size: 12))
+        .font(.content)
         .padding(.trailing, 4)
         .padding([.top, .bottom, .leading], 16)
         .background(Container())
     }
     
     @ViewBuilder private func Folder() -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 2)
-                .frame(width: 36, height: 20)
-                .offset(y: -8)
-                .foregroundStyle(.primary)
-            Image(systemName: "questionmark.folder")
-                .font(.system(size: 36))
-                .symbolVariant(.fill)
-                .foregroundStyle(.primary, LinearGradient.themed)
-        }
+        Image(systemName: "questionmark.folder")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 40, height: 32, alignment: .bottom)
+            .symbolVariant(.fill)
+            .foregroundStyle(.primary, .linearThemed)
     }
 }
 
@@ -166,7 +162,7 @@ struct Documents: View {
                     Paddle(edge: .leading) { previous() }
                     HStack(alignment: .center, spacing: 4) {
                         Text("Statements")
-                            .font(.title3.bold())
+                            .font(.header)
                         Spacer()
                     }
                     Paddle(edge: .trailing) { next() }
@@ -207,22 +203,22 @@ struct Documents: View {
             Puller()
             VStack(alignment: .leading, spacing: 0) {
                 Text("\(statement.name.capitalized)")
-                    .foregroundStyle(statement.id == target ? Color.dark : .primary)
+                    .foregroundStyle(statement.id == target ? .dark : .primary)
                 Text("\(statement.date.formatted(date: .abbreviated, time: .omitted))")
             }
             .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
                 ForEach(statement.attributes, id: \.self) { attribute in
                     Text(attribute.name)
-                        .font(.system(size: 12))
-                        .capsuled(gradient: attribute.constrained ? .dark : .grayed)
+                        .font(.content)
+                        .capsuled(background: attribute.constrained ? .init(.linearDark) : .init(.linearGrayed))
                 }
             }
             .frame(width: 192)
             Puller()
         }
         .padding(8)
-        .font(.system(size: 12))
+        .font(.content)
         .background(Container())
     }
     

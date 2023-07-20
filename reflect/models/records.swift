@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-@Observable class Records: ObservableObject {
+@Observable final class Records {
     var statements: [Statement]
     var errors: [Statement]
     

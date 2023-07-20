@@ -1,8 +1,8 @@
 import SwiftUI
 
 extension View {
-    func capsuled(gradient: LinearGradient) -> some View {
-        self.modifier(Capsuled(gradient: gradient))
+    func capsuled(background: AnyShapeStyle) -> some View {
+        self.modifier(Capsuled(background: background))
     }
 }
 
