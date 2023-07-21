@@ -15,7 +15,7 @@ struct Background: NSViewRepresentable {
 struct Container: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
-            .fill(.primary.opacity(0.05))
+            .fill(.ultraThinMaterial.shadow(.drop(radius: 2)))
     }
 }
 

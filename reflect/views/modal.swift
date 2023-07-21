@@ -16,7 +16,6 @@ struct Dropbox: View {
                         Folder()
                         HStack(spacing: 0) {
                             Text("Upload")
-                                .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
                                 .foregroundStyle(.dark)
                                 .onTapGesture { imported = true }
                             Text(" or Drop Files")
@@ -179,9 +178,9 @@ struct Documents: View {
                 ForEach(records.statements) { statement in
                     Card(statement)
                         .frame(width: 344)
+                        .padding(2)
                 }
             }
-            .frame(height: 66)
             .scrollTargetLayout()
         }
         .scrollTargetBehavior(.centered)
