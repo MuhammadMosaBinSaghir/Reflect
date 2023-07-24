@@ -1,11 +1,11 @@
 import SwiftUI
 
 extension View {
-    func capsuled(background: AnyShapeStyle) -> some View {
-        self.modifier(Capsuled(background: background))
+    func bound(by shape: AnyShape, fill background: AnyShapeStyle) -> some View {
+        self.modifier(Bound(shape: shape, background: background))
     }
 }
 
 extension ScrollTargetBehavior where Self == CenteredScrollTargetBehavior {
-    static var centered: CenteredScrollTargetBehavior { get { CenteredScrollTargetBehavior() } }
+    static var centered: CenteredScrollTargetBehavior { .init() }
 }

@@ -36,6 +36,7 @@ extension ShapeStyle where Self == Color {
 
 extension Font {
     static let content: Font = .body
+    static let icons: Font = .largeTitle
     static let header: Font = .title3.bold()
     static let search: Font = .title
 }

@@ -59,7 +59,6 @@ struct Dropbox: View {
                     .padding(4)
                     .foregroundStyle(.dark)
                     .background(Container())
-                    .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
                     .onTapGesture { expand = false }
                     Trash()
                 }
@@ -84,7 +83,6 @@ struct Dropbox: View {
             .padding(4)
             .foregroundColor(.dark)
             .background(Container())
-            .shadow(color: .primary.opacity(0.1), radius: 1, x: 1, y: 1)
             .onTapGesture { expand = false; records.errors.removeAll(); }
         }
     }
@@ -122,7 +120,7 @@ struct Dropbox: View {
             .frame(width: 80, height: 32, alignment: .leading)
             .padding(.trailing, 8)
             Text(statement.error?.rawValue ?? "invalid error")
-                .capsuled(background: .init(.linearDark))
+                .bound(by: .init(Capsule(style: .continuous)), fill: .init(.linearDark))
             Spacer()
             Puller()
         }
@@ -144,10 +142,12 @@ struct Dropbox: View {
 
 struct Documents: View {
     @Environment(\.records) private var records
-    @State var target: Statement.ID?
+    @State private var target: Statement.ID?
     
-    var selected: Statement? {
-        guard let id = target else { print("selected, no target"); return nil }
+    @Namespace private var namespace
+    
+    private var selected: Statement? {
+        guard let id = target else { return nil }
         guard let selected = find(statement: .current, from: id) else { return nil }
         return selected
     }
@@ -170,6 +170,7 @@ struct Documents: View {
                 Container()
             }
         }
+        .animation(.scroll, value: target)
     }
     
     @ViewBuilder private func Cards(frame size: CGSize) -> some View {
@@ -177,8 +178,15 @@ struct Documents: View {
             HStack(spacing: 8) {
                 ForEach(records.statements) { statement in
                     Card(statement)
-                        .frame(width: 344)
-                        .padding(2)
+                        .scrollTransition(.interactive, axis: .horizontal) { content, phase in
+                            content
+                                .rotation3D(
+                                    phase.isIdentity ? .zero : phase.value < 0 ? .degrees(-45) : .degrees(45),
+                                    axis: (x: 0, y: 1, z: 0),
+                                    anchorZ: statement.id == target ? 0 : 1
+                                )
+                                .blur(radius: phase.isIdentity ? 0 : 1)
+                        }
                 }
             }
             .scrollTargetLayout()
@@ -186,62 +194,60 @@ struct Documents: View {
         .scrollTargetBehavior(.centered)
         .scrollPosition(id: $target)
         .scrollIndicators(.never)
-        .onAppear { target = records.statements.first?.id; print("on appear \(selected?.name ?? "nil"), id: \(target?.uuidString ?? "nil")")}
-        .onChange(of: records.statements.count) {
-                switch (($1 - $0).signum()) {
-                case 1: withAnimation(.scroll) { target = records.statements.last?.id }
-                case -1: withAnimation(.scroll) { target = records.statements.last?.id }
-                default: return
-                }
-            
-        }
+        .onAppear { target = records.statements.first?.id }
     }
 
     @ViewBuilder private func Card(_ statement: Statement) -> some View {
         HStack(spacing: 8) {
-            Puller()
-            VStack(alignment: .leading, spacing: 0) {
-                Text("\(statement.name.capitalized)")
-                    .foregroundStyle(statement.id == target ? .dark : .primary)
-                Text("\(statement.date.formatted(date: .abbreviated, time: .omitted))")
-            }
-            .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
                 ForEach(statement.attributes, id: \.self) { attribute in
-                    Text(attribute.name)
-                        .font(.content)
-                        .capsuled(background: attribute.constrained ? .init(.linearDark) : .init(.linearGrayed))
+                    if statement.id == target {
+                        Text(attribute.name)
+                            .font(.content)
+                            .bound(by: .init(Capsule(style: .continuous)), fill: .init(.linearDark))
+                            .matchedGeometryEffect(
+                                id: statement.name + attribute.name,
+                                in: namespace, properties: .position, anchor: .center
+                            )
+                    } else {
+                        Image(systemName: attribute.icon)
+                            .symbolVariant(.circle.fill)
+                            .symbolRenderingMode(.hierarchical)
+                            .matchedGeometryEffect(
+                                id: statement.name + attribute.name,
+                                in: namespace, properties: .position, anchor: .center
+                            )
+                    }
                 }
             }
-            .frame(width: 192)
-            Puller()
+            .font(statement.id == target ? .content : .icons)
+            .frame(width: statement.id == target ? 208 : 120)
+            .padding(8)
+            .background(Container())
         }
-        .padding(8)
-        .font(.content)
-        .background(Container())
     }
     
     private func find(statement: Target, from id: Statement.ID) -> Statement? {
-        guard let index = records.statements.firstIndex(where: { $0.id == id }) else {  print("could not find, returned"); return nil }
+        guard let index = records.statements.firstIndex(where: { $0.id == id }) else { return nil }
         switch statement {
         case .previous:
-            guard target != records.statements.first?.id else { print("find .previous, returned"); return nil }
+            guard target != records.statements.first?.id else { return nil }
             return records.statements[index - 1]
         case .current: return records.statements[index]
         case .next:
-            guard target != records.statements.last?.id else {  print("find .next, returned"); return nil }
+            guard target != records.statements.last?.id else { return nil }
             return records.statements[index + 1]
         }
     }
     
     private func previous() {
-        guard let current = target else { print("previous() no target"); return }
+        guard let current = target else { return }
         guard let previous = find(statement: .previous, from: current) else { return }
         withAnimation(.scroll) { target = previous.id  }
     }
     
     private func next() {
-        guard let current = target else { print("next() no target"); return }
+        guard let current = target else { return }
         guard let next = find(statement: .next, from: current) else { return }
         withAnimation(.scroll) { target = next.id }
     }
