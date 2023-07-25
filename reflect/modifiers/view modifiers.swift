@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct Bound: ViewModifier {
-    var shape: AnyShape
-    var background: AnyShapeStyle
+struct Bound<T: Shape, S: ShapeStyle>: ViewModifier {
+    var shape: T
+    var background: S
     
     func body(content: Content) -> some View {
         content

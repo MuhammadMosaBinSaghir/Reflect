@@ -1,7 +1,8 @@
 import Foundation
 import Observation
 
-@Observable class Attribute {
+@Observable
+class Attribute {
     let name: String
     let icon: String
     let type: Constraint

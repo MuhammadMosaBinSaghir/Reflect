@@ -120,7 +120,7 @@ struct Dropbox: View {
             .frame(width: 80, height: 32, alignment: .leading)
             .padding(.trailing, 8)
             Text(statement.error?.rawValue ?? "invalid error")
-                .bound(by: .init(Capsule(style: .continuous)), fill: .init(.linearDark))
+                .bound(by: Capsule(style: .continuous), fill: .linearDark)
             Spacer()
             Puller()
         }
@@ -142,49 +142,31 @@ struct Dropbox: View {
 
 struct Documents: View {
     @Environment(\.records) private var records
+    
     @State private var target: Statement.ID?
-    
-    @Namespace private var namespace
-    
-    private var selected: Statement? {
-        guard let id = target else { return nil }
-        guard let selected = find(statement: .current, from: id) else { return nil }
-        return selected
-    }
-    
-    enum Target: Error { case previous, current, next }
-    
+
     var body: some View {
         GeometryReader { proxy in
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Paddle(edge: .leading) { previous() }
-                    HStack(alignment: .center, spacing: 4) {
-                        Text("Statements")
-                            .font(.header)
-                        Spacer()
-                    }
-                    Paddle(edge: .trailing) { next() }
+                HStack(alignment: .center, spacing: 4) {
+                    Text("Statements")
+                        .font(.header)
+                    Spacer()
                 }
-                Cards(frame: proxy.size)
+                Cards()
                 Container()
             }
         }
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Cards(frame size: CGSize) -> some View {
+    @ViewBuilder private func Cards() -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
                 ForEach(records.statements) { statement in
                     Card(statement)
                         .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                             content
-                                .rotation3D(
-                                    phase.isIdentity ? .zero : phase.value < 0 ? .degrees(-45) : .degrees(45),
-                                    axis: (x: 0, y: 1, z: 0),
-                                    anchorZ: statement.id == target ? 0 : 1
-                                )
                                 .blur(radius: phase.isIdentity ? 0 : 1)
                         }
                 }
@@ -194,64 +176,32 @@ struct Documents: View {
         .scrollTargetBehavior(.centered)
         .scrollPosition(id: $target)
         .scrollIndicators(.never)
-        .onAppear { target = records.statements.first?.id }
+        .onAppear { target = records.select(.first) }
+        .onChange(of: target) { records.select($1) }
     }
 
     @ViewBuilder private func Card(_ statement: Statement) -> some View {
         HStack(spacing: 8) {
+            Paddle(edge: .leading) { target = records.select(.previous) }
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(statement.name)")
+                    .foregroundStyle(statement.id == target ? .dark : .primary)
+                Text("\(statement.date.formatted(date: .abbreviated, time: .omitted))")
+            }
+            .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
                 ForEach(statement.attributes, id: \.self) { attribute in
-                    if statement.id == target {
-                        Text(attribute.name)
-                            .font(.content)
-                            .bound(by: .init(Capsule(style: .continuous)), fill: .init(.linearDark))
-                            .matchedGeometryEffect(
-                                id: statement.name + attribute.name,
-                                in: namespace, properties: .position, anchor: .center
-                            )
-                    } else {
-                        Image(systemName: attribute.icon)
-                            .symbolVariant(.circle.fill)
-                            .symbolRenderingMode(.hierarchical)
-                            .matchedGeometryEffect(
-                                id: statement.name + attribute.name,
-                                in: namespace, properties: .position, anchor: .center
-                            )
-                    }
+                    Text(attribute.name)
+                        .bound(by: Capsule(style: .continuous), fill: .linearDark)
                 }
             }
-            .font(statement.id == target ? .content : .icons)
-            .frame(width: statement.id == target ? 208 : 120)
-            .padding(8)
-            .background(Container())
+            .frame(width: 192)
+            Paddle(edge: .trailing) { target = records.select(.next) }
         }
+        .padding(8)
+        .font(.content)
+        .background(Container())
     }
-    
-    private func find(statement: Target, from id: Statement.ID) -> Statement? {
-        guard let index = records.statements.firstIndex(where: { $0.id == id }) else { return nil }
-        switch statement {
-        case .previous:
-            guard target != records.statements.first?.id else { return nil }
-            return records.statements[index - 1]
-        case .current: return records.statements[index]
-        case .next:
-            guard target != records.statements.last?.id else { return nil }
-            return records.statements[index + 1]
-        }
-    }
-    
-    private func previous() {
-        guard let current = target else { return }
-        guard let previous = find(statement: .previous, from: current) else { return }
-        withAnimation(.scroll) { target = previous.id  }
-    }
-    
-    private func next() {
-        guard let current = target else { return }
-        guard let next = find(statement: .next, from: current) else { return }
-        withAnimation(.scroll) { target = next.id }
-    }
-
 }
 
 struct Modal: View {
@@ -261,7 +211,10 @@ struct Modal: View {
     
     var body: some View {
         VStack {
-            if !records.isEmpty { Documents().transition(.move(edge: .top).combined(with: .opacity)) }
+            if !records.isEmpty {
+                Documents()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
             Dropbox(expand: $expand)
         }
         .padding(8)

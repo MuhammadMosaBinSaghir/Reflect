@@ -1,7 +1,8 @@
 import Foundation
 import Observation
 
-@Observable class Statement: Identifiable {
+@Observable
+class Statement: Identifiable {
     let id = UUID()
     let date: Date
     var attributes: [Attribute]
