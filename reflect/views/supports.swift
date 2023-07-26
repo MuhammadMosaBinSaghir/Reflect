@@ -250,10 +250,10 @@ struct PolygonalStack: Layout {
 }
 
 struct CenteredScrollTargetBehavior: ScrollTargetBehavior {
-    private enum Direction { case left, right }
-    private enum Placement { case beginning, middle, end }
-    
     func updateTarget(_ target: inout ScrollTarget, context: TargetContext) {
+        enum Direction { case left, right }
+        enum Placement { case beginning, middle, end }
+        
         let direction: Direction = if (context.velocity.dx < 0) { .left } else { .right }
         
         let placement: Placement = switch(context.records.selected) {
@@ -281,28 +281,6 @@ struct CenteredScrollTargetBehavior: ScrollTargetBehavior {
             switch(direction) {
             case .left: floor(location/viewWidth)*viewWidth - offset
             case .right: context.contentSize.width;
-            }
-        }
-        
-        print("direction: \(direction), placement: \(placement), location: \(location), viewWidth: \(viewWidth), new origin: \(target.rect.origin.x)")
-    }
-    
-    private func origin(location: CGFloat, placement: Placement, direction: Direction, bound: CGFloat) -> CGFloat {
-        switch(placement) {
-        case .beginning:
-            switch(direction) {
-            case .left: return .zero
-            case .right: return ceil(location/344)*344 - 20
-            }
-        case .middle:
-            switch(direction) {
-            case .left: return floor(location/344)*344 - 20
-            case .right: return ceil(location/344)*344 - 20
-            }
-        case .end:
-            switch(direction) {
-            case .left: return floor(location/344)*344 - 20
-            case .right: return bound;
             }
         }
     }

@@ -7,7 +7,6 @@ extension Animation {
 }
 
 extension CGFloat {
-    
     struct Height {
         let searchbar: CGFloat = 64.0
         let content: CGFloat = 464.0
@@ -28,6 +27,9 @@ extension CGFloat {
 extension ShapeStyle where Self == Color {
     static var light: Color { .cyan }
     static var dark: Color { .blue }
+}
+
+extension ShapeStyle where Self == LinearGradient {
     static var linearDark: LinearGradient { .init(colors: [.dark, .dark], startPoint: .leading, endPoint: .trailing) }
     static var linearLight: LinearGradient { .init(colors: [.light, .light], startPoint: .leading, endPoint: .trailing) }
     static var linearThemed: LinearGradient { .init(colors: [.dark, .light], startPoint: .leading, endPoint: .trailing) }

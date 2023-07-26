@@ -142,16 +142,16 @@ struct Dropbox: View {
 
 struct Documents: View {
     @Environment(\.records) private var records
-    
     @State private var target: Statement.ID?
-
+    
     var body: some View {
         GeometryReader { proxy in
             VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .center, spacing: 4) {
+                HStack(alignment: .center, spacing: 8) {
                     Text("Statements")
                         .font(.header)
                     Spacer()
+                    Dots()
                 }
                 Cards()
                 Container()
@@ -167,7 +167,11 @@ struct Documents: View {
                     Card(statement)
                         .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                             content
-                                .blur(radius: phase.isIdentity ? 0 : 1)
+                                .blur(radius: phase.isIdentity ? 0 : 5)
+                                .scaleEffect(
+                                    phase.isIdentity ? 1 : 0.5,
+                                    anchor: anchor(for: phase)
+                                )
                         }
                 }
             }
@@ -201,6 +205,26 @@ struct Documents: View {
         .padding(8)
         .font(.content)
         .background(Container())
+    }
+    
+    @ViewBuilder private func Dots() -> some View {
+        HStack {
+            ForEach(records.statements) { statement in
+                Capsule(style: .continuous)
+                    .frame(width: statement.id == target ? 16 : 4, height: 4)
+                    .foregroundStyle(statement.id == target ? .linearThemed : .linearGrayed)
+            }
+        }
+        .padding(8)
+        .background(Container())
+    }
+    
+    private func anchor(for phase: ScrollTransitionPhase) -> UnitPoint {
+        switch(phase.value) {
+        case -1: .leading
+        case 1: .trailing
+        default: .center
+        }
     }
 }
 
