@@ -43,6 +43,7 @@ final class Records {
     func pull(from url: URL) {
         let name = url.deletingPathExtension().lastPathComponent.capitalized
         let type = url.pathExtension == "" ? "folder" : url.pathExtension.lowercased()
+        guard type == "csv" else { addUnsupported(name: name, type: type); return }
         guard let dropped = try? Data(contentsOf: url) else { addUndecodable(name: name, type: type); return }
         guard let data = String(data: dropped, encoding: .utf8) else { addUndecodable(name: name, type: type); return }
         guard !data.isEmpty else { addBlank(name: name, type: type); return }

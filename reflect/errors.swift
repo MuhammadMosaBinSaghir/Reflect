@@ -1,10 +1,11 @@
 import Foundation
 
 enum StatementError: String, Error {
-    case undroppable = "undroppable"
-    case unimportable = "unimportable"
-    case undecodable = "undecodable"
-    case duplicate = "duplicate"
     case blank = "blank"
+    case duplicate = "duplicate"
+    case undecodable = "undecodable"
+    case undroppable = "undroppable"
     case unexplained = "unexplained"
+    case unimportable = "unimportable"
+    case unsupported = "unsupported"
 }

@@ -26,11 +26,13 @@ extension Records {
     var isErrored: Bool { !errors.isEmpty }
     var isEmpty: Bool { statements.isEmpty }
     
-    func addUndroppable() { errors.append(.init(error: .undroppable)) }
-    func addUnimportable() { errors.append(.init(error: .unimportable)) }
-    func addUndecodable(name: String, type: String) { errors.append(.init(name: name, type: type, error: .undecodable)) }
     func addDuplicate(name: String, type: String) { errors.append(.init(name: name, type: type, error: .duplicate)) }
     func addBlank(name: String, type: String) { errors.append(.init(name: name, type: type, error: .blank)) }
+    
+    func addUndecodable(name: String, type: String) { errors.append(.init(name: name, type: type, error: .undecodable)) }
+    func addUndroppable() { errors.append(.init(error: .undroppable)) }
+    func addUnimportable() { errors.append(.init(error: .unimportable)) }
+    func addUnsupported(name: String, type: String) { errors.append(.init(name: name, type: type, error: .unsupported)) }
 }
 
 private struct RecordKey: EnvironmentKey {
