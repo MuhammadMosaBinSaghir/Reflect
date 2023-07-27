@@ -1,13 +1,12 @@
 import SwiftUI
 
-extension Attribute: Hashable {
-    static func == (lhs: Attribute, rhs: Attribute) -> Bool {
-        return lhs.type == rhs.type && lhs.constrained == rhs.constrained
+extension Transaction: Hashable {
+    static func == (lhs: Transaction, rhs: Transaction) -> Bool {
+        lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
-        hasher.combine(type)
-        hasher.combine(name)
+        hasher.combine(id)
     }
 }
 
@@ -35,13 +34,13 @@ extension Records {
     func addUnsupported(name: String, type: String) { errors.append(.init(name: name, type: type, error: .unsupported)) }
 }
 
-private struct RecordKey: EnvironmentKey {
-    static var defaultValue: Records = Records()
-}
-
 extension EnvironmentValues {
     var records: Records {
         get { self[RecordKey.self] }
         set { self[RecordKey.self] = newValue }
     }
+}
+
+private struct RecordKey: EnvironmentKey {
+    static var defaultValue: Records = Records()
 }

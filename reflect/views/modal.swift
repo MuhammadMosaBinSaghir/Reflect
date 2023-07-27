@@ -153,18 +153,33 @@ struct Documents: View {
                     Spacer()
                     Dots()
                 }
-                Cards()
-                Container()
+                Badges()
+                Columns(for: records.selected?.transactions ?? .empty)
             }
         }
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Cards() -> some View {
+    @ViewBuilder private func Columns(for transactions: [Transaction]) -> some View {
+        Table(transactions) {
+            TableColumn(Card.label, value: \.card.number)
+            TableColumn(Account.label, value: \.account.type.rawValue)
+            TableColumn(Code.label, value: \.code.type.rawValue)
+            TableColumn(Date.label) {
+                Text($0.date.formatted(date: .abbreviated, time: .omitted))
+            }
+            TableColumn(Amount.label) {
+                Text($0.amount.value.formatted())
+            }
+            TableColumn(Description.label, value: \.description.text)
+        }
+    }
+    
+    @ViewBuilder private func Badges() -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
                 ForEach(records.statements) { statement in
-                    Card(statement)
+                    Badge(statement)
                         .scrollTransition(.interactive, axis: .horizontal) { content, phase in
                             content
                                 .blur(radius: phase.isIdentity ? 0 : 5)
@@ -183,8 +198,8 @@ struct Documents: View {
         .onAppear { target = records.select(.first) }
         .onChange(of: target) { records.select($1) }
     }
-
-    @ViewBuilder private func Card(_ statement: Statement) -> some View {
+    
+    @ViewBuilder private func Badge(_ statement: Statement) -> some View {
         HStack(spacing: 8) {
             Paddle(edge: .leading) { target = records.select(.previous) }
             VStack(alignment: .leading, spacing: 0) {
@@ -194,10 +209,12 @@ struct Documents: View {
             }
             .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
-                ForEach(statement.attributes, id: \.self) { attribute in
-                    Text(attribute.name)
-                        .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                }
+                Text(Date.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Account.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Description.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Merchant.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Category.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Amount.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
             }
             .frame(width: 192)
             Paddle(edge: .trailing) { target = records.select(.next) }
