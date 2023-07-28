@@ -5,16 +5,16 @@ import RegexBuilder
 @Observable
 class Theme {
     let name: String
-    let account: Regex<Substring>
-    let amount: Regex<Substring>
-    let card: Regex<Substring>
-    let code: Regex<Substring>
-    let date: Regex<Substring>
-    let description: Regex<Substring>
+    var account: String
+    let amount: String
+    let card: String
+    let code: String
+    let date: String
+    let description: String
     
-    let seperator: Regex<Substring>
+    let seperator: String
     
-    func extract(from data: String) -> [Transaction] {
+    func parse(from data: String) -> [Transaction] {
         let card = Reference(Card.self)
         let account = Reference(Account.self)
         let date = Reference(Date.self)
@@ -26,19 +26,19 @@ class Theme {
         Regex {
             /^/
             TryCapture(as: card) {
-                self.card
+                regex(from: self.card)
             } transform: {
                 Card(number: String($0))
             }
-            self.seperator
+            regex(from: self.seperator)
             TryCapture(as: account) {
-                self.account
+                regex(from: self.account)
             } transform: {
-                Account(type: .init(rawValue: String($0)) ?? .unknown )
+                return Account(type: .init(rawValue: String($0).lowercased()) ?? .unknown)
             }
-            self.seperator
+            regex(from: self.seperator)
             TryCapture(as: date) {
-                self.date
+                regex(from: self.date)
             } transform: {
                 let strategy = Date.ParseStrategy(
                     format: "\(year: .extended(minimumLength: 4))\(month: .twoDigits)\(day: .twoDigits)",
@@ -48,20 +48,20 @@ class Theme {
                 let date = try? Date(String($0), strategy: strategy)
                 return date ?? .now
             }
-            self.seperator
+            regex(from: self.seperator)
             TryCapture(as: amount) {
-                self.amount
+                regex(from: self.amount)
             } transform: {
-                Amount(value: Decimal(string: String($0)) ?? 0, currency: .CAD)
+                return Amount(value: Decimal(string: String($0)) ?? 0, currency: .CAD)
             }
-            self.seperator
+            regex(from: self.seperator)
             TryCapture(as: code) {
-                self.code
+                regex(from: self.code)
             } transform: {
-                Code(type: .init(rawValue: String($0)) ?? .unknown )
+                return Code(type: .init(rawValue: String($0).trimmingCharacters(in: ["[", "]"])) ?? .unknown )
             }
             TryCapture(as: description) {
-                self.description
+                regex(from: self.description)
             } transform: {
                 Description(text: String($0))
             }
@@ -82,30 +82,44 @@ class Theme {
                 )
             )
         }
-        print(transactions.count)
+        /*
+        for (index, transaction) in transactions.enumerated() {
+            print("index: " + (index + 1).description)
+            print("id: " + transaction.id.description)
+            print("account: " + transaction.account.type.rawValue)
+            print("amount: " + transaction.amount.value.formatted())
+            print("card: " + transaction.card.number)
+            print("category: " + transaction.category.debugDescription)
+            print("code: " + transaction.code.type.rawValue)
+            print("date: " + transaction.date.formatted())
+            print("description: " + transaction.description.text)
+            print("merchant: " + transaction.merchant.debugDescription)
+            print("---------------------------")
+        }
+         */
         return transactions
     }
     
     static let BMO: Theme = .init(
         name: "BMO",
-        account: /DEBIT|CREDIT/,
-        amount: /\d+.\d{1,2}/,
-        card: /'\d{16}'/,
-        code: /\[[A-Z]{2}\]/,
-        date: /\d{8}/,
-        description: /.*?\S.*?(?=\s*\n|$)/,
-        seperator: /,/
+        account: #"DEBIT|CREDIT"#,
+        amount: #"-?\d+.\d{1,2}"#,
+        card: #"'\d{16}'"#,
+        code: #"\[[A-Z]{2}\]"#,
+        date: #"\d{8}"#,
+        description: #".*?\S.*?(?=\s*\n|$)"#,
+        seperator: #","#
     )
     
     init(
         name: String,
-        account: Regex<Substring>,
-        amount: Regex<Substring>,
-        card: Regex<Substring>,
-        code: Regex<Substring>,
-        date: Regex<Substring>,
-        description: Regex<Substring>,
-        seperator: Regex<Substring>
+        account: String,
+        amount: String,
+        card: String,
+        code: String,
+        date: String,
+        description: String,
+        seperator: String
     ) {
         self.name = name
         self.account = account
@@ -115,5 +129,10 @@ class Theme {
         self.date = date
         self.description = description
         self.seperator = seperator
+    }
+    
+    private func regex(from string: String) -> Regex<Substring> {
+        do { return try Regex(string) }
+        catch { return /a^/ }
     }
 }

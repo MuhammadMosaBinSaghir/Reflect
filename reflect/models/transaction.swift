@@ -12,7 +12,6 @@ class Transaction: Identifiable {
     let date: Date
     let description: Description
     let merchant: Merchant?
-    let uncategorized: Uncategorized?
     
     init(account: Account, amount: Amount, card: Card, code: Code, date: Date, description: Description) {
         self.account = account
@@ -23,6 +22,5 @@ class Transaction: Identifiable {
         self.date = date
         self.description = description
         self.merchant = nil
-        self.uncategorized = nil
     }
 }

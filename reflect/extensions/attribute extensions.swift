@@ -70,13 +70,3 @@ extension Merchant: Hashable {
         hasher.combine(name)
     }
 }
-
-extension Uncategorized: Hashable {
-    static func == (lhs: Uncategorized, rhs: Uncategorized) -> Bool {
-        lhs.data == rhs.data
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(data)
-    }
-}

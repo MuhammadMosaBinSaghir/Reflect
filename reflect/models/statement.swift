@@ -33,7 +33,7 @@ class Statement: Identifiable {
         self.data = data
         
         self.theme = theme
-        self.transactions = theme.extract(from: data)
+        self.transactions = theme.parse(from: data)
         self.error = nil
     }
 }

@@ -140,6 +140,18 @@ struct Dropbox: View {
     }
 }
 
+struct ThemeView: View {
+    @Bindable var theme: Theme
+    
+    var body: some View {
+        
+        VStack{
+            TextField("account regex", text: $theme.account)
+        }
+        
+    }
+}
+
 struct Documents: View {
     @Environment(\.records) private var records
     @State private var target: Statement.ID?
@@ -154,7 +166,10 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                Columns(for: records.selected?.transactions ?? .empty)
+                HStack{
+                    ThemeView(theme: records.selected?.theme ?? .BMO)
+                    Columns(for: records.selected?.transactions ?? .empty)
+                }
             }
         }
         .animation(.scroll, value: target)
