@@ -6,8 +6,10 @@ class Code: Attribute {
     static let label: String = "code"
     static let icon: String = "gearshape"
     
-    let type: CodeType
+    var type: CodeType
+    func formatted() -> String { type.rawValue }
     
+    init(type: CodeType) { self.type = type }
     enum CodeType: String, CaseIterable {
         case A0
         case AD
@@ -54,6 +56,4 @@ class Code: Attribute {
         case WD
         case unknown
     }
-    
-    init(type: CodeType) { self.type = type }
 }

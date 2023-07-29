@@ -6,8 +6,9 @@ class Category: Attribute {
     static let label: String = "category"
     static let icon: String = "tag"
     
-    let type: CategoryType
-    enum CategoryType: CaseIterable { case mortgage }
-    
+    var type: CategoryType
+    func formatted() -> String { type.rawValue }
+
     init(type: CategoryType) { self.type = type }
+    enum CategoryType: String, CaseIterable { case unknown }
 }

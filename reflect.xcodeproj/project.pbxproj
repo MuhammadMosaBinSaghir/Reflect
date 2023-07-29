@@ -10,7 +10,6 @@
 		C3061EF12A6827E400A41DC4 /* layout extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3061EF02A6827E400A41DC4 /* layout extensions.swift */; };
 		C3BA37CE2A71F78C00ACC60B /* protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA37CD2A71F78C00ACC60B /* protocols.swift */; };
 		C3BA37D02A71F7D700ACC60B /* account.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA37CF2A71F7D700ACC60B /* account.swift */; };
-		C3BA37D22A71F7F200ACC60B /* card.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA37D12A71F7F200ACC60B /* card.swift */; };
 		C3BA37D42A71F81600ACC60B /* category.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA37D32A71F81600ACC60B /* category.swift */; };
 		C3BA37D62A71F89000ACC60B /* code.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA37D52A71F89000ACC60B /* code.swift */; };
 		C3BA37D82A71F8B700ACC60B /* description.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA37D72A71F8B700ACC60B /* description.swift */; };
@@ -41,7 +40,6 @@
 		C3061EF02A6827E400A41DC4 /* layout extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "layout extensions.swift"; sourceTree = "<group>"; };
 		C3BA37CD2A71F78C00ACC60B /* protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = protocols.swift; sourceTree = "<group>"; };
 		C3BA37CF2A71F7D700ACC60B /* account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = account.swift; sourceTree = "<group>"; };
-		C3BA37D12A71F7F200ACC60B /* card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = card.swift; sourceTree = "<group>"; };
 		C3BA37D32A71F81600ACC60B /* category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = category.swift; sourceTree = "<group>"; };
 		C3BA37D52A71F89000ACC60B /* code.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = code.swift; sourceTree = "<group>"; };
 		C3BA37D72A71F8B700ACC60B /* description.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = description.swift; sourceTree = "<group>"; };
@@ -94,7 +92,6 @@
 			children = (
 				C3BA37CF2A71F7D700ACC60B /* account.swift */,
 				C3BA37DD2A71F96900ACC60B /* amount.swift */,
-				C3BA37D12A71F7F200ACC60B /* card.swift */,
 				C3BA37D32A71F81600ACC60B /* category.swift */,
 				C3BA37D52A71F89000ACC60B /* code.swift */,
 				C3BA37D72A71F8B700ACC60B /* description.swift */,
@@ -256,7 +253,6 @@
 				C3E4F0BB2A683A540076D37C /* transaction.swift in Sources */,
 				C3C3B1D52A6342DE0083A775 /* sidebar.swift in Sources */,
 				C3E4F0BF2A68411C0076D37C /* model extensions.swift in Sources */,
-				C3BA37D22A71F7F200ACC60B /* card.swift in Sources */,
 				C3C3B1D92A6342F70083A775 /* modal.swift in Sources */,
 				C3C3B1D72A6342ED0083A775 /* contents.swift in Sources */,
 				C3BA37D02A71F7D700ACC60B /* account.swift in Sources */,

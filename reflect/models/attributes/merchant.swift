@@ -6,8 +6,9 @@ class Merchant: Attribute {
     static let label: String = "merchant"
     static let icon: String = "cart"
 
-    let name: MerchantName
-    enum MerchantName: CaseIterable { case Apple }
+    var name: MerchantName
+    func formatted() -> String { name.rawValue }
     
     init(name: MerchantName) { self.name = name }
+    enum MerchantName: String, CaseIterable { case unknown }
 }

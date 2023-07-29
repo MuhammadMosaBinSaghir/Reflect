@@ -143,13 +143,41 @@ struct Dropbox: View {
 struct ThemeView: View {
     @Bindable var theme: Theme
     
+    @State private var bio = ""
     var body: some View {
-        
-        VStack{
-            TextField("account regex", text: $theme.account)
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 8) {
+                Editor(for: Account.init(type: .unknown, number: ""))
+                Editor(for: Code(type: .unknown))
+                Editor(for: Date.now)
+                Editor(for: Amount(worth: 0))
+                Editor(for: Description(text: ""))
+            }
         }
-        
+        .font(.content)
+        .scrollIndicators(.never)
     }
+    
+    @ViewBuilder private func Editor<A: Attribute>(for attribute: A) -> some View {
+        VStack(alignment: .trailing, spacing: -4) {
+            HStack {
+                Text(A.label.capitalized)
+                Spacer()
+                Image(systemName: A.icon)
+                    .foregroundStyle(.primary)
+                    .symbolRenderingMode(.monochrome)
+            }
+            .zIndex(1)
+            .padding(2)
+            .bound(by: RoundedRectangle(cornerRadius: 8, style: .continuous), fill: .linearGrayed)
+            TextField("\\", text: $bio, axis: .vertical)
+                .padding(8)
+                .textFieldStyle(.plain)
+                .lineLimit(2, reservesSpace: true)
+        }
+        .background(Container())
+    }
+    
 }
 
 struct Documents: View {
@@ -177,14 +205,15 @@ struct Documents: View {
     
     @ViewBuilder private func Columns(for transactions: [Transaction]) -> some View {
         Table(transactions) {
-            TableColumn(Card.label, value: \.card.number)
-            TableColumn(Account.label, value: \.account.type.rawValue)
+            TableColumn(Account.label) {
+                Text($0.account.formatted())
+            }
             TableColumn(Code.label, value: \.code.type.rawValue)
             TableColumn(Date.label) {
                 Text($0.date.formatted(date: .abbreviated, time: .omitted))
             }
             TableColumn(Amount.label) {
-                Text($0.amount.value.formatted())
+                Text($0.amount.worth.formatted())
             }
             TableColumn(Description.label, value: \.description.text)
         }

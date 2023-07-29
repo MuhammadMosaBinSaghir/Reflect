@@ -6,12 +6,8 @@ class Amount: Attribute {
     static let label: String = "amount"
     static let icon: String = "dollarsign"
     
-    let value: Decimal
-    let currency: Currency
-    enum Currency: CaseIterable { case CAD, USD }
+    var worth: Decimal
+    func formatted() -> String { worth.formatted(.currency(code: "CAD")) }
     
-    init(value: Decimal, currency: Currency) {
-        self.value = value
-        self.currency = currency
-    }
+    init(worth: Decimal) { self.worth = worth }
 }

@@ -12,22 +12,11 @@ extension Account: Hashable {
 
 extension Amount: Hashable {
     static func == (lhs: Amount, rhs: Amount) -> Bool {
-        lhs.value == rhs.value && lhs.currency == rhs.currency
+        lhs.worth == rhs.worth
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(value)
-        hasher.combine(currency)
-    }
-}
-
-extension Card: Hashable {
-    static func == (lhs: Card, rhs: Card) -> Bool {
-        lhs.number == rhs.number
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(number)
+        hasher.combine(worth)
     }
 }
 

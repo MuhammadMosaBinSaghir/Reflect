@@ -4,37 +4,37 @@ import RegexBuilder
 
 @Observable
 class Theme {
-    let name: String
-    var account: String
-    let amount: String
-    let card: String
-    let code: String
-    let date: String
-    let description: String
+    var name: String
+    var accountType: String
+    var accountNumber: String
+    var amountWorth: String
+    var code: String
+    var date: String
+    var description: String
     
-    let seperator: String
+    var seperator: String
     
     func parse(from data: String) -> [Transaction] {
-        let card = Reference(Card.self)
-        let account = Reference(Account.self)
+        let accountType = Reference(Account.AccountType.self)
+        let accountNumber = Reference(String.self)
         let date = Reference(Date.self)
-        let amount = Reference(Amount.self)
+        let amountWorth = Reference(Decimal.self)
         let code = Reference(Code.self)
         let description = Reference(Description.self)
         
         let transaction =
         Regex {
             /^/
-            TryCapture(as: card) {
-                regex(from: self.card)
+            TryCapture(as: accountNumber) {
+                regex(from: self.accountNumber)
             } transform: {
-                Card(number: String($0))
+                String($0).filter { $0 != "'" }
             }
             regex(from: self.seperator)
-            TryCapture(as: account) {
-                regex(from: self.account)
+            TryCapture(as: accountType) {
+                regex(from: self.accountType)
             } transform: {
-                return Account(type: .init(rawValue: String($0).lowercased()) ?? .unknown)
+                .init(rawValue: String($0).lowercased())
             }
             regex(from: self.seperator)
             TryCapture(as: date) {
@@ -49,10 +49,10 @@ class Theme {
                 return date ?? .now
             }
             regex(from: self.seperator)
-            TryCapture(as: amount) {
-                regex(from: self.amount)
+            TryCapture(as: amountWorth) {
+                regex(from: self.amountWorth)
             } transform: {
-                return Amount(value: Decimal(string: String($0)) ?? 0, currency: .CAD)
+                Decimal(string: String($0))
             }
             regex(from: self.seperator)
             TryCapture(as: code) {
@@ -73,9 +73,8 @@ class Theme {
         for match in matches {
             transactions.append(
                 Transaction(
-                    account: match[account],
-                    amount: match[amount],
-                    card: match[card],
+                    account: Account(type: match[accountType], number: match[accountNumber]),
+                    amount: Amount(worth: match[amountWorth]),
                     code: match[code],
                     date: match[date],
                     description: match[description]
@@ -86,14 +85,11 @@ class Theme {
         for (index, transaction) in transactions.enumerated() {
             print("index: " + (index + 1).description)
             print("id: " + transaction.id.description)
-            print("account: " + transaction.account.type.rawValue)
-            print("amount: " + transaction.amount.value.formatted())
-            print("card: " + transaction.card.number)
-            print("category: " + transaction.category.debugDescription)
-            print("code: " + transaction.code.type.rawValue)
+            print("account: " + transaction.account.formatted())
+            print("amount: " + transaction.amount.formatted())
+            print("code: " + transaction.code.formatted())
             print("date: " + transaction.date.formatted())
-            print("description: " + transaction.description.text)
-            print("merchant: " + transaction.merchant.debugDescription)
+            print("description: " + transaction.description.formatted())
             print("---------------------------")
         }
          */
@@ -102,9 +98,9 @@ class Theme {
     
     static let BMO: Theme = .init(
         name: "BMO",
-        account: #"DEBIT|CREDIT"#,
-        amount: #"-?\d+.\d{1,2}"#,
-        card: #"'\d{16}'"#,
+        accountType: #"DEBIT|CREDIT"#,
+        accountNumber: #"'\d{16}'"#,
+        amountWorth: #"-?\d+.\d{1,2}"#,
         code: #"\[[A-Z]{2}\]"#,
         date: #"\d{8}"#,
         description: #".*?\S.*?(?=\s*\n|$)"#,
@@ -113,18 +109,18 @@ class Theme {
     
     init(
         name: String,
-        account: String,
-        amount: String,
-        card: String,
+        accountType: String,
+        accountNumber: String,
+        amountWorth: String,
         code: String,
         date: String,
         description: String,
         seperator: String
     ) {
         self.name = name
-        self.account = account
-        self.amount = amount
-        self.card = card
+        self.accountType = accountType
+        self.accountNumber = accountNumber
+        self.amountWorth = amountWorth
         self.code = code
         self.date = date
         self.description = description
