@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 @Observable
-class Transaction: Identifiable {
+final class Transaction: Identifiable {
     let id = UUID()
     let account: Account
     let amount: Amount

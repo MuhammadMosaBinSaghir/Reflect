@@ -5,7 +5,7 @@ enum StatementError: String, Error {
     case duplicate = "duplicate"
     case undecodable = "undecodable"
     case undroppable = "undroppable"
-    case unexplained = "unexplained"
+    case undefined = "undefined"
     case unimportable = "unimportable"
     case unsupported = "unsupported"
 }

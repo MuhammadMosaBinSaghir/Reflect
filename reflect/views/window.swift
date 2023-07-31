@@ -9,7 +9,7 @@ struct Dashboard<Searchbar: View, Sidebar: View, Contents: View, Modal: View>: V
     @ViewBuilder let contents: () -> Contents
     @ViewBuilder let modal: () -> Modal
     
-    public var body: some View {
+    var body: some View {
         GeometryReader { geometry in
             ZStack {
                 Background()

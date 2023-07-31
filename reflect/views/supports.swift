@@ -64,6 +64,78 @@ struct Paddle: View {
     }
 }
 
+struct Header: View {
+    @State var label: String
+    @State var icon: String
+    
+    var body: some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Image(systemName: icon)
+                .foregroundStyle(.primary)
+                .symbolRenderingMode(.monochrome)
+        }
+        .bound(
+            by: RoundedRectangle(cornerRadius: 8, style: .continuous),
+            fill: .linearGrayed
+        )
+    }
+}
+
+struct Paragraph<Header: View, Content: View>: View {
+    @ViewBuilder let header: () -> Header
+    @ViewBuilder let content: () -> Content
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            header()
+            .zIndex(1)
+            .padding(2)
+            content()
+        }
+        .font(.content)
+        .background(Container())
+    }
+}
+
+struct ExpandingParagraph<Content: View>: View {
+    @State var label: String
+    @State var icon: String
+    @Binding var expand: Bool
+    @ViewBuilder let content: () -> Content
+    
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button(action: {
+                expand.toggle()
+            }, label: {
+                HStack {
+                    Text(label)
+                    Spacer()
+                    Image(systemName: icon)
+                        .foregroundStyle(.primary)
+                        .symbolRenderingMode(.monochrome)
+                }
+                .bound(
+                    by: RoundedRectangle(cornerRadius: 8, style: .continuous),
+                    fill: expand ? .linearDark: .linearGrayed
+                )
+            })
+            .zIndex(1)
+            .padding(2)
+            .buttonStyle(.plain)
+            if(expand) {
+                content()
+                    .transition(.opacity)
+            }
+        }
+        .font(.content)
+        .background(Container())
+    }
+}
+
 struct TagStack: Layout {
     var spacing: CGFloat? = nil
     
@@ -179,73 +251,6 @@ struct TagStack: Layout {
         guard condition else { length = 0; return index }
         index += 1
         return fit(block: &index, within: blocks, in: bounds, length: &length)
-    }
-}
-
-struct PolygonalStack: Layout {
-    var center: Bool = false
-    var offset: Angle = .zero
-    
-    init(center: Bool) {
-        self.center = center
-    }
-    
-    init(center: Bool, offset: Angle) {
-        self.center = center
-        self.offset = offset
-    }
-    
-    struct Cache {
-        let count: CGFloat
-        let ratio: CGFloat
-        let side: CGFloat
-    }
-    
-    func makeCache(subviews: Subviews) -> Cache {
-        let count = center ? CGFloat(subviews.count - 1) : CGFloat(subviews.count)
-        let ratio = sin(CGFloat.pi/count)
-        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
-        let biggest: CGSize = sizes.reduce(.zero) { biggest, size in
-            CGSize(width: max(biggest.width, size.width), height: max(biggest.height, size.height))
-        }
-        let side = max(biggest.width, biggest.height)
-        return Cache(count: count, ratio: ratio, side: side)
-    }
-    
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
-        guard !subviews.isEmpty else { return .zero }
-        guard subviews.count != 1 else { return proposal.replacingUnspecifiedDimensions() }
-        let dimension = cache.side*(1 + (1/cache.ratio))
-        return CGSize(width: dimension, height: dimension)
-    }
-    
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
-        guard !subviews.isEmpty else { return }
-        guard !(subviews.count == 1) else {
-            subviews[0].place(at: CGPoint(x: bounds.midX, y: bounds.midY), anchor: .center, proposal: proposal)
-            return
-        }
-        let circumradius = min(bounds.size.width, bounds.size.height)/(2 + cache.ratio)
-        let angle: CGFloat = Angle.degrees(360.0/cache.count).radians
-        let proposed = ProposedViewSize(width: cache.side, height: cache.side)
-        
-        for (index, subview) in subviews.enumerated() {
-            guard !((index == subviews.count - 1) && center) else {
-                subview.place(
-                    at: CGPoint(x: bounds.midX, y: bounds.midY),
-                    anchor: .center,
-                    proposal: ProposedViewSize(width: circumradius, height: circumradius)
-                )
-                return
-            }
-            let rotation = CGAffineTransform(rotationAngle: angle*CGFloat(index) + offset.radians)
-            var point = CGPoint(x: 0, y: -circumradius)
-                .applying(rotation)
-
-            point.x += bounds.midX
-            point.y += bounds.midY
-            subview.place(at: point, anchor: .center, proposal: proposed)
-        }
     }
 }
 

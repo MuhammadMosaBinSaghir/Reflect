@@ -90,7 +90,7 @@ struct Dropbox: View {
     @ViewBuilder private func Cards() -> some View {
         if (!expand) {
             ZStack {
-                Card(records.errors.first ?? Statement(error: .unexplained))
+                Card(records.errors.first ?? Statement(error: .undefined))
             }
             .onTapGesture { if records.errors.count > 1 { expand = true } }
             .matchedGeometryEffect(id: "errors", in: namespace, properties: .position, anchor: .top)
@@ -140,44 +140,72 @@ struct Dropbox: View {
     }
 }
 
-struct ThemeView: View {
-    @Bindable var theme: Theme
+struct Definer: View {
+    @Bindable var definition: Definition
     
-    @State private var bio = ""
+    @State private var clicked = Array(repeating: true, count: 5)
+    
     var body: some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 8) {
-                Editor(for: Account.init(type: .unknown, number: ""))
-                Editor(for: Code(type: .unknown))
-                Editor(for: Date.now)
-                Editor(for: Amount(worth: 0))
-                Editor(for: Description(text: ""))
+        GeometryReader { proxy in
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ExpandingParagraph(
+                        label: Account.label.rawValue,
+                        icon: Account.icon,
+                        expand: $clicked[0]
+                    ) {
+                        TextField("Type a Regular Expresssion", text: $definition.account, axis: .vertical)
+                            .padding(8)
+                            .textFieldStyle(.plain)
+                            .lineLimit(2, reservesSpace: true)
+                    }
+                    ExpandingParagraph(
+                        label: Date.label.rawValue,
+                        icon: Date.icon,
+                        expand: $clicked[1]
+                    ) {
+                        TextField("Type a Regular Expresssion", text: $definition.date, axis: .vertical)
+                            .padding(8)
+                            .textFieldStyle(.plain)
+                            .lineLimit(2, reservesSpace: true)
+                    }
+                    ExpandingParagraph(
+                        label: Code.label.rawValue,
+                        icon: Code.icon,
+                        expand: $clicked[2]
+                    ) {
+                        TextField("Type a Regular Expresssion", text: $definition.code, axis: .vertical)
+                            .padding(8)
+                            .textFieldStyle(.plain)
+                            .lineLimit(2, reservesSpace: true)
+                    }
+                    ExpandingParagraph(
+                        label: Amount.label.rawValue,
+                        icon: Amount.icon,
+                        expand: $clicked[3]
+                    ) {
+                        TextField("Type a Regular Expresssion", text: $definition.amount, axis: .vertical)
+                            .padding(8)
+                            .textFieldStyle(.plain)
+                            .lineLimit(2, reservesSpace: true)
+                    }
+                    ExpandingParagraph(
+                        label: Description.label.rawValue,
+                        icon: Description.icon,
+                        expand: $clicked[4]
+                    ) {
+                        TextField("Type a Regular Expresssion", text: $definition.description, axis: .vertical)
+                            .padding(8)
+                            .textFieldStyle(.plain)
+                            .lineLimit(2, reservesSpace: true)
+                    }
+                }
             }
+            .font(.content)
+            .animation(.snappy, value: clicked)
+            .scrollIndicators(.never)
         }
-        .font(.content)
-        .scrollIndicators(.never)
     }
-    
-    @ViewBuilder private func Editor<A: Attribute>(for attribute: A) -> some View {
-        VStack(alignment: .trailing, spacing: -4) {
-            HStack {
-                Text(A.label.capitalized)
-                Spacer()
-                Image(systemName: A.icon)
-                    .foregroundStyle(.primary)
-                    .symbolRenderingMode(.monochrome)
-            }
-            .zIndex(1)
-            .padding(2)
-            .bound(by: RoundedRectangle(cornerRadius: 8, style: .continuous), fill: .linearGrayed)
-            TextField("\\", text: $bio, axis: .vertical)
-                .padding(8)
-                .textFieldStyle(.plain)
-                .lineLimit(2, reservesSpace: true)
-        }
-        .background(Container())
-    }
-    
 }
 
 struct Documents: View {
@@ -194,28 +222,31 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                HStack{
-                    ThemeView(theme: records.selected?.theme ?? .BMO)
-                    Columns(for: records.selected?.transactions ?? .empty)
+                HStack(spacing: 8) {
+                    Definer(definition: records.selected?.definition ?? .bank)
+                    Data(of: records.selected ?? .undefined)
+                        .frame(width: 0.7*proxy.size.width)
                 }
             }
         }
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Columns(for transactions: [Transaction]) -> some View {
-        Table(transactions) {
-            TableColumn(Account.label) {
-                Text($0.account.formatted())
+    @ViewBuilder private func Data(of statement: Statement) -> some View {
+        Paragraph {
+            Header(label: "Statement", icon: "text.bubble")
+        } content: {
+            ScrollView(.vertical) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(statement.data, id: \.self) {
+                        Text($0)
+                            .padding(8)
+                            .multilineTextAlignment(.leading)
+                            .background(Container())
+                            .foregroundStyle(statement.accounts.contains($0) ? .dark : .red)
+                    }
+                }
             }
-            TableColumn(Code.label, value: \.code.type.rawValue)
-            TableColumn(Date.label) {
-                Text($0.date.formatted(date: .abbreviated, time: .omitted))
-            }
-            TableColumn(Amount.label) {
-                Text($0.amount.worth.formatted())
-            }
-            TableColumn(Description.label, value: \.description.text)
         }
     }
     
@@ -253,12 +284,18 @@ struct Documents: View {
             }
             .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
-                Text(Date.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Account.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Description.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Merchant.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Category.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Amount.label).bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Date.label.rawValue)
+                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Account.label.rawValue)
+                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Description.label.rawValue)
+                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Merchant.label.rawValue)
+                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Category.label.rawValue)
+                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                Text(Amount.label.rawValue)
+                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
             }
             .frame(width: 192)
             Paddle(edge: .trailing) { target = records.select(.next) }

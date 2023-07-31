@@ -3,17 +3,40 @@ import Observation
 import RegexBuilder
 
 @Observable
-class Theme {
+final class Definition {
     var name: String
-    var accountType: String
-    var accountNumber: String
-    var amountWorth: String
-    var code: String
+    var account: String
     var date: String
+    var code: String
+    var amount: String
     var description: String
     
-    var seperator: String
+    func parse<A: Attributable>(from string: String, to type: A.Type) -> [A] {
+        let type = Reference(A.self)
+        let code: String = switch A.label {
+        case .account: self.account
+        case .date: self.date
+        case .code: self.code
+        case .amount: self.amount
+        case .description: self.description
+        default: .empty
+        }
+        let attribute = Regex {
+            TryCapture(as: type) {
+                regex(from: code)
+            } transform: {
+                A.parse(from: String($0))
+            }
+        }
+        var attributes: [A] = .empty
+        let matches = string.matches(of: attribute)
+        for match in matches {
+            attributes.append(match[type])
+        }
+        return attributes
+    }
     
+    /*
     func parse(from data: String) -> [Transaction] {
         let accountType = Reference(Account.AccountType.self)
         let accountNumber = Reference(String.self)
@@ -58,7 +81,7 @@ class Theme {
             TryCapture(as: code) {
                 regex(from: self.code)
             } transform: {
-                return Code(type: .init(rawValue: String($0).trimmingCharacters(in: ["[", "]"])) ?? .unknown )
+                return Code(type: .init(rawValue: String($0)) ?? .undefined)
             }
             TryCapture(as: description) {
                 regex(from: self.description)
@@ -95,39 +118,34 @@ class Theme {
          */
         return transactions
     }
+    */
     
-    static let BMO: Theme = .init(
-        name: "BMO",
-        accountType: #"DEBIT|CREDIT"#,
-        accountNumber: #"'\d{16}'"#,
-        amountWorth: #"-?\d+.\d{1,2}"#,
-        code: #"\[[A-Z]{2}\]"#,
+    static let bank: Definition = .init(
+        name: "bank",
+        account: #"'\d{16}',DEBIT|CREDIT"#,
         date: #"\d{8}"#,
-        description: #".*?\S.*?(?=\s*\n|$)"#,
-        seperator: #","#
+        code: #"\[[A-Z]{2}\]"#,
+        amount: #"-?\d+.\d{1,2}"#,
+        description: #".*?\S.*?(?=\s*\n|$)"#
     )
     
     init(
-        name: String,
-        accountType: String,
-        accountNumber: String,
-        amountWorth: String,
-        code: String,
-        date: String,
-        description: String,
-        seperator: String
+        name: String = .empty,
+        account: String = .empty,
+        date: String = .empty,
+        code: String = .empty,
+        amount: String = .empty,
+        description: String = .empty
     ) {
         self.name = name
-        self.accountType = accountType
-        self.accountNumber = accountNumber
-        self.amountWorth = amountWorth
-        self.code = code
+        self.account = account
         self.date = date
+        self.code = code
+        self.amount = amount
         self.description = description
-        self.seperator = seperator
     }
     
-    private func regex(from string: String) -> Regex<Substring> {
+    func regex(from string: String) -> Regex<Substring> {
         do { return try Regex(string) }
         catch { return /a^/ }
     }

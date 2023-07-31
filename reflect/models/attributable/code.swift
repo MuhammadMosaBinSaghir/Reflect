@@ -2,14 +2,18 @@ import Foundation
 import Observation
 
 @Observable
-class Code: Attribute {
-    static let label: String = "code"
+final class Code: Attributable {
+    static let label: AttributeLabel = .code
     static let icon: String = "gearshape"
+    static func undefined() -> Code { .init(type: .undefined) }
+    static func parse(from string: String) -> Code {
+        .init(type: .init(rawValue: string) ?? .undefined)
+    }
     
     var type: CodeType
     func formatted() -> String { type.rawValue }
     
-    init(type: CodeType) { self.type = type }
+    required init(type: CodeType) { self.type = type }
     enum CodeType: String, CaseIterable {
         case A0
         case AD
@@ -54,6 +58,6 @@ class Code: Attribute {
         case TF
         case TX
         case WD
-        case unknown
+        case undefined
     }
 }
