@@ -3,12 +3,10 @@ import Observation
 
 @Observable
 final class Code: Attributable {
-    static let label: AttributeLabel = .code
+    static let label: String = "code"
     static let icon: String = "gearshape"
     static func undefined() -> Code { .init(type: .undefined) }
-    static func parse(from string: String) -> Code {
-        .init(type: .init(rawValue: string) ?? .undefined)
-    }
+    static func parse(_ word: String) -> Code { .init(type: .init(rawValue: word) ?? .undefined)}
     
     var type: CodeType
     func formatted() -> String { type.rawValue }

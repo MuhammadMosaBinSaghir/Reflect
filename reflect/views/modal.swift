@@ -140,77 +140,12 @@ struct Dropbox: View {
     }
 }
 
-struct Definer: View {
-    @Bindable var definition: Definition
-    
-    @State private var clicked = Array(repeating: true, count: 5)
-    
-    var body: some View {
-        GeometryReader { proxy in
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 8) {
-                    ExpandingParagraph(
-                        label: Account.label.rawValue,
-                        icon: Account.icon,
-                        expand: $clicked[0]
-                    ) {
-                        TextField("Type a Regular Expresssion", text: $definition.account, axis: .vertical)
-                            .padding(8)
-                            .textFieldStyle(.plain)
-                            .lineLimit(2, reservesSpace: true)
-                    }
-                    ExpandingParagraph(
-                        label: Date.label.rawValue,
-                        icon: Date.icon,
-                        expand: $clicked[1]
-                    ) {
-                        TextField("Type a Regular Expresssion", text: $definition.date, axis: .vertical)
-                            .padding(8)
-                            .textFieldStyle(.plain)
-                            .lineLimit(2, reservesSpace: true)
-                    }
-                    ExpandingParagraph(
-                        label: Code.label.rawValue,
-                        icon: Code.icon,
-                        expand: $clicked[2]
-                    ) {
-                        TextField("Type a Regular Expresssion", text: $definition.code, axis: .vertical)
-                            .padding(8)
-                            .textFieldStyle(.plain)
-                            .lineLimit(2, reservesSpace: true)
-                    }
-                    ExpandingParagraph(
-                        label: Amount.label.rawValue,
-                        icon: Amount.icon,
-                        expand: $clicked[3]
-                    ) {
-                        TextField("Type a Regular Expresssion", text: $definition.amount, axis: .vertical)
-                            .padding(8)
-                            .textFieldStyle(.plain)
-                            .lineLimit(2, reservesSpace: true)
-                    }
-                    ExpandingParagraph(
-                        label: Description.label.rawValue,
-                        icon: Description.icon,
-                        expand: $clicked[4]
-                    ) {
-                        TextField("Type a Regular Expresssion", text: $definition.description, axis: .vertical)
-                            .padding(8)
-                            .textFieldStyle(.plain)
-                            .lineLimit(2, reservesSpace: true)
-                    }
-                }
-            }
-            .font(.content)
-            .animation(.snappy, value: clicked)
-            .scrollIndicators(.never)
-        }
-    }
-}
-
 struct Documents: View {
     @Environment(\.records) private var records
     @State private var target: Statement.ID?
+    
+    @State private var searchText = ""
+    @State private var tokens: [String] = ["key", "da"]
     
     var body: some View {
         GeometryReader { proxy in
@@ -222,32 +157,33 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                HStack(spacing: 8) {
-                    Definer(definition: records.selected?.definition ?? .bank)
-                    Data(of: records.selected ?? .undefined)
-                        .frame(width: 0.7*proxy.size.width)
-                }
+                Bars(from: records.selected?.data ?? .empty)
             }
         }
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Data(of statement: Statement) -> some View {
-        Paragraph {
-            Header(label: "Statement", icon: "text.bubble")
-        } content: {
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(statement.data, id: \.self) {
-                        Text($0)
+    @ViewBuilder private func Bars(from data: [String]) -> some View {
+        ScrollView(.vertical) {
+            VStack(spacing: 8) {
+                ForEach(Attributes.allCases, id: \.self) { attribute in
+                    DisclosureGroup(attribute.rawValue.label.capitalized) {
+                        ForEach(data.indices, id: \.self) { index in
+                            HStack {
+                                Text(data[index])
+                                Spacer()
+                            }
                             .padding(8)
-                            .multilineTextAlignment(.leading)
-                            .background(Container())
-                            .foregroundStyle(statement.accounts.contains($0) ? .dark : .red)
+                            .listRowSeparator(.hidden)
+                        }
                     }
+                    .listRowSeparator(.hidden)
+                    .disclosureGroupStyle(.compact)
                 }
             }
         }
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
     }
     
     @ViewBuilder private func Badges() -> some View {
@@ -284,17 +220,15 @@ struct Documents: View {
             }
             .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
-                Text(Date.label.rawValue)
+                Text(Date.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Account.label.rawValue)
+                Text(Account.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Description.label.rawValue)
+                Text(Description.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Merchant.label.rawValue)
+                Text(Code.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Category.label.rawValue)
-                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Amount.label.rawValue)
+                Text(Amount.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
             }
             .frame(width: 192)

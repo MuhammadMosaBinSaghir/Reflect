@@ -2,18 +2,15 @@ import Foundation
 import Observation
 
 @Observable
-final class Account: Attributable {
-    static let label: AttributeLabel = .account
+final class Account: Attributable {    
+    static let label: String = "account"
     static let icon: String = "creditcard"
-    static func undefined() -> Account { .init(type: .undefined, number: .empty) }
-    static func parse(from string: String) -> Account {
-        .init(type: .init(rawValue: string) ?? .undefined, number: string)
-    }
+    static func undefined() -> Account { .init(type: .undefined) }
+    static func parse(_ word: String) -> Account { .init(type: .init(rawValue: word) ?? .undefined) }
     
     var type: AccountType
-    var number: String
-    func formatted() -> String { type.rawValue + number }
+    func formatted() -> String { type.rawValue }
     
-    required init(type: AccountType, number: String) { self.type = type; self.number = number }
+    required init(type: AccountType) { self.type = type }
     enum AccountType: String, CaseIterable { case undefined, debit, credit }
 }

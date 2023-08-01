@@ -1,13 +1,11 @@
 import Foundation
 
 protocol Attributable: Hashable {
-    associatedtype Attribute
-    
-    static var label: AttributeLabel { get }
+    static var label: String { get }
     static var icon: String { get }
     
     func formatted() -> String
-    static func undefined() -> Attribute
-    static func parse(from string: String) -> Self
+    static func undefined() -> Self
+    static func parse(_ word: String) -> Self
 }
 

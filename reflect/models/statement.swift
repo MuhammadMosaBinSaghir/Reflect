@@ -1,4 +1,5 @@
 import Foundation
+import RegexBuilder
 import Observation
 
 @Observable
@@ -7,36 +8,25 @@ final class Statement: Identifiable {
     let date: Date
     let name: String
     let type: String
+    var parser: Parser?
     let data: [String]
-    var definition: Definition?
     var error: StatementError?
-    
-    var accounts: [String] {
-        guard let definition = self.definition else { return .empty }
-        return self.data.filter { data in
-            data.contains(definition.regex(from: definition.account))
-        }
-    }
     
     init(name: String = "Unknown", type: String = "unknown", error: StatementError) {
         self.date = .now
         self.name = name
         self.type = type
+        self.parser = nil
         self.data = .empty
-        self.definition = nil
         self.error = error
     }
     
-    init(date: Date = .now, name: String, type: String, definition: Definition, data: String) {
+    init(date: Date = .now, name: String, type: String, parser: Parser, block: String) {
         self.date = date
         self.name = name
         self.type = type
-        let lines = data.components(separatedBy: "\n")
-        let compacted = lines.joined(separator: ",")
-        self.data = compacted.components(separatedBy: ",").map {
-            $0.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        self.definition = definition
+        self.parser = parser
+        self.data = parser.breakdown(block)
         self.error = nil
     }
     

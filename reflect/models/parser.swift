@@ -3,14 +3,30 @@ import Observation
 import RegexBuilder
 
 @Observable
-final class Definition {
-    var name: String
+final class Parser {
+    var definition: String
     var account: String
     var date: String
     var code: String
     var amount: String
     var description: String
     
+    func breakdown(_ data: String) -> [String] {
+        var lines = data.components(separatedBy: "\n")
+        lines.removeAll { $0 == .empty }
+        let joined = lines.joined(separator: ",")
+        let compacted = joined.components(separatedBy: ",").map {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return compacted.map { phrase in
+            if phrase.contains(" ") {
+                return phrase.replacing(/\s{2,}/, with: " ")
+            } else {
+                return phrase
+            }
+        }
+    }
+    /*
     func parse<A: Attributable>(from string: String, to type: A.Type) -> [A] {
         let type = Reference(A.self)
         let code: String = switch A.label {
@@ -36,7 +52,7 @@ final class Definition {
         return attributes
     }
     
-    /*
+
     func parse(from data: String) -> [Transaction] {
         let accountType = Reference(Account.AccountType.self)
         let accountNumber = Reference(String.self)
@@ -120,24 +136,15 @@ final class Definition {
     }
     */
     
-    static let bank: Definition = .init(
-        name: "bank",
-        account: #"'\d{16}',DEBIT|CREDIT"#,
-        date: #"\d{8}"#,
-        code: #"\[[A-Z]{2}\]"#,
-        amount: #"-?\d+.\d{1,2}"#,
-        description: #".*?\S.*?(?=\s*\n|$)"#
-    )
-    
     init(
-        name: String = .empty,
+        definition: String = .empty,
         account: String = .empty,
         date: String = .empty,
         code: String = .empty,
         amount: String = .empty,
         description: String = .empty
     ) {
-        self.name = name
+        self.definition = definition
         self.account = account
         self.date = date
         self.code = code

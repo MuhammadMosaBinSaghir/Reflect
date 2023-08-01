@@ -6,6 +6,10 @@ extension View {
     }
 }
 
+extension DisclosureGroupStyle where Self == CompactDisclosureStyle {
+    static var compact: CompactDisclosureStyle { .init() }
+}
+
 extension ScrollTargetBehavior where Self == CenteredScrollTargetBehavior {
     static var centered: CenteredScrollTargetBehavior { .init() }
 }

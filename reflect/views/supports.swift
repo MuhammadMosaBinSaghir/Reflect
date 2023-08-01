@@ -59,80 +59,8 @@ struct Paddle: View {
         .imageScale(.large)
         .buttonStyle(.plain)
         .labelStyle(.iconOnly)
-        .foregroundStyle(.dark)
+        .foregroundStyle(.linearDark)
         .buttonRepeatBehavior(.enabled)
-    }
-}
-
-struct Header: View {
-    @State var label: String
-    @State var icon: String
-    
-    var body: some View {
-        HStack {
-            Text(label)
-            Spacer()
-            Image(systemName: icon)
-                .foregroundStyle(.primary)
-                .symbolRenderingMode(.monochrome)
-        }
-        .bound(
-            by: RoundedRectangle(cornerRadius: 8, style: .continuous),
-            fill: .linearGrayed
-        )
-    }
-}
-
-struct Paragraph<Header: View, Content: View>: View {
-    @ViewBuilder let header: () -> Header
-    @ViewBuilder let content: () -> Content
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            header()
-            .zIndex(1)
-            .padding(2)
-            content()
-        }
-        .font(.content)
-        .background(Container())
-    }
-}
-
-struct ExpandingParagraph<Content: View>: View {
-    @State var label: String
-    @State var icon: String
-    @Binding var expand: Bool
-    @ViewBuilder let content: () -> Content
-    
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Button(action: {
-                expand.toggle()
-            }, label: {
-                HStack {
-                    Text(label)
-                    Spacer()
-                    Image(systemName: icon)
-                        .foregroundStyle(.primary)
-                        .symbolRenderingMode(.monochrome)
-                }
-                .bound(
-                    by: RoundedRectangle(cornerRadius: 8, style: .continuous),
-                    fill: expand ? .linearDark: .linearGrayed
-                )
-            })
-            .zIndex(1)
-            .padding(2)
-            .buttonStyle(.plain)
-            if(expand) {
-                content()
-                    .transition(.opacity)
-            }
-        }
-        .font(.content)
-        .background(Container())
     }
 }
 
@@ -251,6 +179,36 @@ struct TagStack: Layout {
         guard condition else { length = 0; return index }
         index += 1
         return fit(block: &index, within: blocks, in: bounds, length: &length)
+    }
+}
+
+struct CompactDisclosureStyle: DisclosureGroupStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 0) {
+                configuration.label
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .imageScale(.large)
+                    .rotationEffect(configuration.isExpanded ? .zero : .degrees(-90))
+                    .onTapGesture {
+                        withAnimation(.transition) {
+                            configuration.isExpanded.toggle()
+                        }
+                    }
+            }
+            .padding(8)
+            .foregroundStyle(.linearDark)
+            .background(Container())
+            if configuration.isExpanded {
+                VStack(spacing: 0) {
+                    configuration.content
+                        .font(.content)
+                }
+                .padding(8)
+                .background(Container())
+            }
+        }
     }
 }
 

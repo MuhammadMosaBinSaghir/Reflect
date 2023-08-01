@@ -5,16 +5,16 @@ extension Array {
 }
 
 extension Date: Attributable {
-    static let label: AttributeLabel = .date
+    static let label: String = "date"
     static let icon: String = "calendar"
     static func undefined() -> Self { Date.now }
-    static func parse(from string: String) -> Date {
+    static func parse(_ word: String) -> Date {
         let strategy = Date.ParseStrategy(
             format: "\(year: .extended(minimumLength: 4))\(month: .twoDigits)\(day: .twoDigits)",
             locale: .current,
             timeZone: .current
         )
-        let date = try? Date(string, strategy: strategy)
+        let date = try? Date(word, strategy: strategy)
         return date ?? .now
     }
 }
