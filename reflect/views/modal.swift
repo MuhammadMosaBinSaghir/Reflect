@@ -140,12 +140,71 @@ struct Dropbox: View {
     }
 }
 
+struct Parsers: View {
+    @Bindable var parser: Parser
+    @State var proxy: ScrollViewProxy
+    //FocusState: when something click, it goes there and opens it, then on next goes to next field/ then done
+    var body: some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 8) {
+                //ForEach(Attributes.allCases, id: \.self) { attribute in
+                    Paragraph {
+                        Header(label: Account.label, icon: Account.icon)
+                    } content: {
+                        TextField("Type a Regular Expresssion", text: $parser.account, axis: .vertical)
+                            .padding(8)
+                            .textFieldStyle(.plain)
+                            .lineLimit(2, reservesSpace: true)
+                            .onSubmit { proxy.scrollTo(Account.label, anchor: .top) }
+                    }
+                Paragraph {
+                    Header(label: Date.label, icon: Date.icon)
+                } content: {
+                    TextField("Type a Regular Expresssion", text: $parser.date, axis: .vertical)
+                        .padding(8)
+                        .textFieldStyle(.plain)
+                        .lineLimit(2, reservesSpace: true)
+                        .onSubmit { proxy.scrollTo(Date.label, anchor: .top) }
+                }
+                Paragraph {
+                    Header(label: Code.label, icon: Code.icon)
+                } content: {
+                    TextField("Type a Regular Expresssion", text: $parser.code, axis: .vertical)
+                        .padding(8)
+                        .textFieldStyle(.plain)
+                        .lineLimit(2, reservesSpace: true)
+                        .onSubmit { proxy.scrollTo(Code.label, anchor: .top) }
+                }
+                Paragraph {
+                    Header(label: Amount.label, icon: Amount.icon)
+                } content: {
+                    TextField("Type a Regular Expresssion", text: $parser.amount, axis: .vertical)
+                        .padding(8)
+                        .textFieldStyle(.plain)
+                        .lineLimit(2, reservesSpace: true)
+                        .onSubmit { proxy.scrollTo(Amount.label, anchor: .top) }
+                }
+                Paragraph {
+                    Header(label: Description.label, icon: Description.icon)
+                } content: {
+                    TextField("Type a Regular Expresssion", text: $parser.description, axis: .vertical)
+                        .padding(8)
+                        .textFieldStyle(.plain)
+                        .lineLimit(2, reservesSpace: true)
+                        .onSubmit { proxy.scrollTo(Description.label, anchor: .top) }
+                }
+                //}
+            }
+        }
+        .scrollIndicators(.never)
+    }
+}
+
 struct Documents: View {
     @Environment(\.records) private var records
     @State private var target: Statement.ID?
     
-    @State private var searchText = ""
-    @State private var tokens: [String] = ["key", "da"]
+    @State private var areExpanded: [Bool] = Array(repeating: false, count: Attributes.allCases.count + 1)
     
     var body: some View {
         GeometryReader { proxy in
@@ -157,33 +216,71 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                Bars(from: records.selected?.data ?? .empty)
+                Form(for: records.selected ?? .undefined, width: proxy.size.width)
             }
         }
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Bars(from data: [String]) -> some View {
-        ScrollView(.vertical) {
-            VStack(spacing: 8) {
-                ForEach(Attributes.allCases, id: \.self) { attribute in
-                    DisclosureGroup(attribute.rawValue.label.capitalized) {
-                        ForEach(data.indices, id: \.self) { index in
-                            HStack {
-                                Text(data[index])
-                                Spacer()
-                            }
-                            .padding(8)
-                            .listRowSeparator(.hidden)
-                        }
-                    }
-                    .listRowSeparator(.hidden)
-                    .disclosureGroupStyle(.compact)
+    
+    @ViewBuilder private func Listed(attribute: Attributes, statement: Statement) -> some View {
+        ForEach(statement.attributes, id: \.self) { phrase in
+            if phrase.attribute == attribute {
+                HStack {
+                    Text(phrase.words)
+                    Spacer()
+                    Text(phrase.row.formatted())
+                    Text(phrase.attribute?.rawValue.label ?? "undefined")
+                        .foregroundStyle(phrase.attribute?.rawValue.label != nil ? .dark : .primary)
                 }
             }
         }
-        .scrollIndicators(.hidden)
-        .scrollContentBackground(.hidden)
+        /*
+        if statement.attributes.isEmpty {
+            HStack {
+                Text("Enter a Regular Expression")
+                    .foregroundStyle(.placeholder)
+                Spacer()
+            }
+        }
+        else {
+            ForEach(dictionary.sorted(by: >), id: \.key) { key, value in
+                HStack(spacing: 8) {
+                    Text(key)
+                    Spacer()
+                    Text(value.formatted())
+                        .frame(minWidth: 16, minHeight: 16)
+                        .bound(by: Capsule(style: .continuous), fill: .linearGrayed)
+                }
+                .padding(0)
+            }
+        }
+         */
+    }
+    
+    @ViewBuilder private func Form(for statement: Statement, width: CGFloat) -> some View {
+        ScrollViewReader { proxy in
+            HStack(spacing: 8) {
+                Parsers(parser: statement.parser ?? .undefined, proxy: proxy)
+                ScrollView(.vertical) {
+                    VStack(spacing: 8) {
+                        ForEach(Attributes.allCases.indices, id: \.self) { index in
+                            ExpandingParagraph(isExpanded: $areExpanded[index]) {
+                                Text(Attributes.allCases[index].rawValue.label.capitalized)
+                            } content: {
+                                Listed(attribute: Attributes.allCases[index], statement: statement)
+                            }
+                            .id(Attributes.allCases[index].rawValue.label)
+                        }
+                        //undefined
+                    }
+                }
+                .frame(width: 0.7*width)
+                .scrollIndicators(.hidden)
+                .scrollContentBackground(.hidden)
+                .animation(.transition, value: areExpanded)
+            }
+        }
     }
     
     @ViewBuilder private func Badges() -> some View {

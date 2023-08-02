@@ -64,6 +64,75 @@ struct Paddle: View {
     }
 }
 
+struct Header: View {
+    let label: String
+    let icon: String
+    
+    var body: some View {
+        HStack {
+            Text(label.capitalized)
+            Spacer()
+            Image(systemName: icon)
+                .foregroundStyle(.primary)
+                .symbolRenderingMode(.monochrome)
+        }
+        .bound(
+            by: RoundedRectangle(cornerRadius: 8, style: .continuous),
+            fill: .linearGrayed
+        )
+    }
+}
+
+struct Paragraph<Header: View, Content: View>: View {
+    @ViewBuilder let header: () -> Header
+    @ViewBuilder let content: () -> Content
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            header()
+            .zIndex(1)
+            .padding(2)
+            content()
+        }
+        .font(.content)
+        .background(Container())
+    }
+}
+
+struct ExpandingParagraph<Header: View, Content: View>: View {
+    @Binding var isExpanded: Bool
+    @ViewBuilder var header: () -> Header
+    @ViewBuilder var content: () -> Content
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 0) {
+                header()
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .imageScale(.large)
+                    .rotationEffect(isExpanded ? .zero : .degrees(-90))
+                    .onTapGesture {
+                        withAnimation(.transition) {
+                            isExpanded.toggle()
+                        }
+                    }
+            }
+            .padding(8)
+            .foregroundStyle(.linearDark)
+            .background(Container())
+            if(isExpanded) {
+                VStack(spacing: 4) {
+                    content()
+                }
+                .padding(8)
+                .background(Container())
+            }
+        }
+        .font(.content)
+    }
+}
+
 struct TagStack: Layout {
     var spacing: CGFloat? = nil
     
@@ -179,36 +248,6 @@ struct TagStack: Layout {
         guard condition else { length = 0; return index }
         index += 1
         return fit(block: &index, within: blocks, in: bounds, length: &length)
-    }
-}
-
-struct CompactDisclosureStyle: DisclosureGroupStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 0) {
-                configuration.label
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .imageScale(.large)
-                    .rotationEffect(configuration.isExpanded ? .zero : .degrees(-90))
-                    .onTapGesture {
-                        withAnimation(.transition) {
-                            configuration.isExpanded.toggle()
-                        }
-                    }
-            }
-            .padding(8)
-            .foregroundStyle(.linearDark)
-            .background(Container())
-            if configuration.isExpanded {
-                VStack(spacing: 0) {
-                    configuration.content
-                        .font(.content)
-                }
-                .padding(8)
-                .background(Container())
-            }
-        }
     }
 }
 
