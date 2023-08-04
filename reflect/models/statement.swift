@@ -5,16 +5,15 @@ struct Phrase {
     let row: Int
     let count: Int
     let words: String
-    var attribute: Attributes?
+    var attributes: Set<Attributes>
     
-    init(row: Int, words: String, attribute: Attributes? = nil) {
+    init(row: Int, words: String, attributes: Set<Attributes> = .empty) {
         self.row = row
         self.count = 1
         self.words = words
-        self.attribute = attribute
+        self.attributes = attributes
     }
 }
-
 
 extension Phrase: Hashable {
     static func == (lhs: Self, rhs: Self) -> Bool {
@@ -35,24 +34,20 @@ final class Statement: Identifiable {
     let type: String
     var error: StatementError?
     var parser: Parser?
-    let source: [Phrase]
+    let source: [[String]]
     
-    var attributes: [Phrase] {
+    //TO MANT UI UPDATES CAUSE ATTRIBUTES
+    //DONT IMEDIATLY RECALCULATE, ONLY ON SUBMIT, CAUSE WHY CALCULATE WHEN STILL TYPING OR WHEN USER STOPPED TYPING
+    //NOW U HAVE UNIQUE, SO DONT REDEFINE IT!
+    //MIGHT GET TO DELETE ROW IN PHRASE
+    //mmight be better to just use [[String]] than to chunch it later
+    //remove SwiftAlgorithms
+    //remove Phrase
+    //REMOVE .BMO
+    
+    var attributes: [String] {
         guard let parser = self.parser else { return .empty }
-        let keys: [(regex: Regex<Substring>, attribute: Attributes)?] = Attributes.allCases.map {
-            guard let regex = Parser.regex(from: parser.key(for: $0)) else { return nil }
-            return (regex: regex, attribute: $0)
-        }
-        let compacted = keys.compactMap { $0 }
-        guard !compacted.isEmpty else { return .empty }
-        return source.map { phrase in
-            for key in compacted {
-                if phrase.words.contains(key.regex) {
-                    return Phrase(row: phrase.row, words: phrase.words, attribute: key.attribute)
-                }
-            }
-            return Phrase(row: phrase.row, words: phrase.words)
-        }
+        return parser.searching(in: source, for: .account)
     }
     
     init(name: String = "Unknown", type: String = "unknown", error: StatementError) {

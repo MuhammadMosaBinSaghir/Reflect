@@ -9,3 +9,6 @@ protocol Attributable: Hashable {
     static func parse(_ word: String) -> Self
 }
 
+protocol Empty {
+    static var empty: Self { get }
+}

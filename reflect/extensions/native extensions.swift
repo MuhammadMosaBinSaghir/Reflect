@@ -1,7 +1,7 @@
 import Foundation
 
-extension Array {
-    static var empty: [Element] { [] }
+extension Array: Empty {
+    static var empty: Array<Element> { Array<Element>() }
 }
 
 extension Date: Attributable {
@@ -26,6 +26,10 @@ extension Sequence where Iterator.Element: Hashable {
     }
 }
 
-extension String {
+extension Set: Empty {
+    static var empty: Set<Element> { Set<Element>() }
+}
+
+extension String: Empty {
     static let empty: String = ""
 }

@@ -225,14 +225,12 @@ struct Documents: View {
     
     @ViewBuilder private func Listed(attribute: Attributes, statement: Statement) -> some View {
         ForEach(statement.attributes, id: \.self) { phrase in
-            if phrase.attribute == attribute {
+            
                 HStack {
-                    Text(phrase.words)
+                    Text(phrase)
                     Spacer()
-                    Text(phrase.row.formatted())
-                    Text(phrase.attribute?.rawValue.label ?? "undefined")
-                        .foregroundStyle(phrase.attribute?.rawValue.label != nil ? .dark : .primary)
                 }
+            
             }
         }
         /*
@@ -256,7 +254,7 @@ struct Documents: View {
             }
         }
          */
-    }
+    
     
     @ViewBuilder private func Form(for statement: Statement, width: CGFloat) -> some View {
         ScrollViewReader { proxy in
