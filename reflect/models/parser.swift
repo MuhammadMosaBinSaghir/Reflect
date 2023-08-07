@@ -12,18 +12,27 @@ final class Parser {
         
         static func empty() -> Self { .init(account: .empty, date: .empty, amount: .empty, description: .empty) }
     }
+    
+    struct Match {
+        var column: Int?
+        var count: Int
+        var results: [String: Int]
+        
+        static func empty() -> Self { .init(count: 0, results: .empty) }
+    }
+    
     var definition: String
     var keys: Keys
-    let source: [[String]]
+    var source: [[String]]
     
-    var accounts: [String] { searching(in: source, for: .account) }
-    var dates: [String] { searching(in: source, for: .date) }
-    var amounts: [String] { searching(in: source, for: .amount) }
-    var descriptions: [String] { searching(in: source, for: .description) }
+    var accounts: Match { searching(in: source, for: .account) }
+    var dates: Match { searching(in: source, for: .date) }
+    var amounts: Match { searching(in: source, for: .amount) }
+    var descriptions: Match { searching(in: source, for: .description) }
     
     static let undefined = Parser(source: .empty)
     
-    func buffer(for attribute: Attributes) -> [String] {
+    func buffer(for attribute: Attributes) -> Match {
         switch attribute {
         case .account: self.accounts
         case .date: self.dates
@@ -41,15 +50,21 @@ final class Parser {
         }
     }
     
-    func searching(in phrases: [[String]], for attribute: Attributes) -> [String] {
-        guard let regex = Self.regex(from: self.key(for: attribute)) else { return .empty }
-        guard let index = phrases.firstIndex(where: { $0.contains { $0.contains(regex) } } ) else { return .empty }
-        let match = phrases[index].firstIndex { $0.contains(regex) }!
+    func searching(in phrases: [[String]], for attribute: Attributes) -> Match {
+        guard let regex = Self.regex(from: self.key(for: attribute)) else { return .empty() }
+        guard let index = phrases.firstIndex(where: { $0.contains { $0.contains(regex) } } ) else { return .empty() }
+        let column = phrases[index].firstIndex { $0.contains(regex) }!
         
-        return (index..<phrases.count).compactMap {
-            guard phrases[$0].count > match else { return nil }
-            return phrases[$0][match]
+        let matches: [String] = (index..<phrases.count).compactMap {
+            guard phrases[$0].count > column else { return nil }
+            return phrases[$0][column]
         }
+
+        let uniques = matches.reduce(into: [:]) { dictionary, element in
+            dictionary[element, default: 0] += 1
+        }
+        
+        return .init(column: Int(column), count: matches.count, results: uniques)
     }
     
     static func regex(from key: String) -> Regex<Substring>? {

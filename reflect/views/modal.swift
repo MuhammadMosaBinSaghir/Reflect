@@ -161,7 +161,7 @@ struct Documents: View {
     @Environment(\.records) private var records
     @State private var target: Statement.ID?
     
-    @State private var areExpanded: [Bool] = Array(repeating: false, count: Attributes.allCases.count + 1)
+    @State private var areExpanded: [Bool] = Array(repeating: true, count: Attributes.allCases.count)
     
     var body: some View {
         GeometryReader { proxy in
@@ -179,18 +179,45 @@ struct Documents: View {
         .animation(.scroll, value: target)
     }
     
-    /*
-    @ViewBuilder private func Listed(attribute: Attributes, found array: [String]) -> some View {
-
-
-        if statement.attributes.isEmpty {
+    @ViewBuilder private func Form(for parser: Parser, width: CGFloat) -> some View {
+        ScrollViewReader { proxy in
+            HStack(spacing: 8) {
+                Keys(parser: parser, proxy: proxy)
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(zip(Attributes.allCases.indices, Attributes.allCases)), id: \.0) { (index, attribute) in
+                            let match = parser.buffer(for: attribute)
+                            ExpandingParagraph(isExpanded: $areExpanded[index]) {
+                                HStack {
+                                    Text("^[\(match.count) \(attribute.rawValue.label)](inflect: true)")
+                                    Spacer()
+                                    Text(match.column?.formatted() ?? "undefined")
+                                        .frame(minWidth: 16, minHeight: 16)
+                                        .bound(by: Capsule(style: .continuous), fill: .linearGrayed)
+                                }
+                            } content: {
+                                Matches(match.results)
+                            }
+                            .id(attribute.rawValue.label)
+                        }
+                    }
+                }
+                .frame(width: 0.7*width)
+                .scrollIndicators(.hidden)
+                .scrollContentBackground(.hidden)
+                .animation(.transition, value: areExpanded)
+            }
+        }
+    }
+    
+    @ViewBuilder private func Matches(_ dictionary: [String: Int]) -> some View {
+        if dictionary.isEmpty {
             HStack {
                 Text("Enter a Regular Expression")
                     .foregroundStyle(.placeholder)
                 Spacer()
             }
-        }
-        else {
+        } else {
             ForEach(dictionary.sorted(by: >), id: \.key) { key, value in
                 HStack(spacing: 8) {
                     Text(key)
@@ -200,35 +227,6 @@ struct Documents: View {
                         .bound(by: Capsule(style: .continuous), fill: .linearGrayed)
                 }
                 .padding(0)
-            }
-        }
-         */
-    
-    @ViewBuilder private func Form(for parser: Parser, width: CGFloat) -> some View {
-        ScrollViewReader { proxy in
-            HStack(spacing: 8) {
-                Keys(parser: parser, proxy: proxy)
-                ScrollView(.vertical) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(Attributes.allCases.indices, id: \.self) { index in
-                            ExpandingParagraph(isExpanded: $areExpanded[index]) {
-                                Text(Attributes.allCases[index].rawValue.label.capitalized)
-                            } content: {
-                                ForEach(parser.buffer(for: Attributes.allCases[index]), id: \.self) { phrase in
-                                    HStack {
-                                        Text(phrase)
-                                        Spacer()
-                                    }
-                                }
-                            }
-                            .id(Attributes.allCases[index].rawValue.label)
-                        }
-                    }
-                }
-                .frame(width: 0.7*width)
-                .scrollIndicators(.hidden)
-                .scrollContentBackground(.hidden)
-                .animation(.transition, value: areExpanded)
             }
         }
     }

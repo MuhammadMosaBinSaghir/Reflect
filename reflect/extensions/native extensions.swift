@@ -19,6 +19,10 @@ extension Date: Attributable {
     }
 }
 
+extension Dictionary: Empty {
+    static var empty: Dictionary<Key, Value> { Dictionary<Key, Value>() }
+}
+
 extension Sequence where Iterator.Element: Hashable {
     func unique() -> [Iterator.Element] {
         var seen: Set<Iterator.Element> = []
