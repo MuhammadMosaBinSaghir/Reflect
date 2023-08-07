@@ -20,16 +20,6 @@ extension Amount: Hashable {
     }
 }
 
-extension Code: Hashable {
-    static func == (lhs: Code, rhs: Code) -> Bool {
-        lhs.type == rhs.type
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(type)
-    }
-}
-
 extension Description: Hashable {
     static func == (lhs: Description, rhs: Description) -> Bool {
         lhs.text == rhs.text

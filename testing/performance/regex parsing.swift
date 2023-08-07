@@ -11,6 +11,9 @@ final class RegexParsingTests: XCTestCase {
         
         measure(metrics: metrics, options: options) {
             _ = parser.searching(in: Parser.samples, for: .account)
+            _ = parser.searching(in: Parser.samples, for: .date)
+            _ = parser.searching(in: Parser.samples, for: .code)
+            _ = parser.searching(in: Parser.samples, for: .amount)
         }
     }
 }

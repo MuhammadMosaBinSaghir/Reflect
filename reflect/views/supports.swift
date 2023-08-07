@@ -133,6 +133,24 @@ struct ExpandingParagraph<Header: View, Content: View>: View {
     }
 }
 
+struct Editor: View {
+    let attribute: Attributes
+    @Binding var key: String
+    @State var proxy: ScrollViewProxy
+    
+    var body: some View {
+        Paragraph {
+            Header(label: attribute.rawValue.label, icon: attribute.rawValue.icon)
+        } content: {
+            TextField("Type a Regular Expresssion", text: $key, axis: .vertical)
+                .padding(8)
+                .textFieldStyle(.plain)
+                .lineLimit(2, reservesSpace: true)
+                .onSubmit { proxy.scrollTo(attribute.rawValue.label, anchor: .top) }
+        }
+    }
+}
+
 struct TagStack: Layout {
     var spacing: CGFloat? = nil
     

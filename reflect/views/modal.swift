@@ -140,60 +140,17 @@ struct Dropbox: View {
     }
 }
 
-struct Parsers: View {
+struct Keys: View {
     @Bindable var parser: Parser
     @State var proxy: ScrollViewProxy
-    //FocusState: when something click, it goes there and opens it, then on next goes to next field/ then done
+    
     var body: some View {
         ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 8) {
-                //ForEach(Attributes.allCases, id: \.self) { attribute in
-                    Paragraph {
-                        Header(label: Account.label, icon: Account.icon)
-                    } content: {
-                        TextField("Type a Regular Expresssion", text: $parser.account, axis: .vertical)
-                            .padding(8)
-                            .textFieldStyle(.plain)
-                            .lineLimit(2, reservesSpace: true)
-                            .onSubmit { proxy.scrollTo(Account.label, anchor: .top) }
-                    }
-                Paragraph {
-                    Header(label: Date.label, icon: Date.icon)
-                } content: {
-                    TextField("Type a Regular Expresssion", text: $parser.date, axis: .vertical)
-                        .padding(8)
-                        .textFieldStyle(.plain)
-                        .lineLimit(2, reservesSpace: true)
-                        .onSubmit { proxy.scrollTo(Date.label, anchor: .top) }
-                }
-                Paragraph {
-                    Header(label: Code.label, icon: Code.icon)
-                } content: {
-                    TextField("Type a Regular Expresssion", text: $parser.code, axis: .vertical)
-                        .padding(8)
-                        .textFieldStyle(.plain)
-                        .lineLimit(2, reservesSpace: true)
-                        .onSubmit { proxy.scrollTo(Code.label, anchor: .top) }
-                }
-                Paragraph {
-                    Header(label: Amount.label, icon: Amount.icon)
-                } content: {
-                    TextField("Type a Regular Expresssion", text: $parser.amount, axis: .vertical)
-                        .padding(8)
-                        .textFieldStyle(.plain)
-                        .lineLimit(2, reservesSpace: true)
-                        .onSubmit { proxy.scrollTo(Amount.label, anchor: .top) }
-                }
-                Paragraph {
-                    Header(label: Description.label, icon: Description.icon)
-                } content: {
-                    TextField("Type a Regular Expresssion", text: $parser.description, axis: .vertical)
-                        .padding(8)
-                        .textFieldStyle(.plain)
-                        .lineLimit(2, reservesSpace: true)
-                        .onSubmit { proxy.scrollTo(Description.label, anchor: .top) }
-                }
-                //}
+                Editor(attribute: .account, key: $parser.keys.account, proxy: proxy)
+                Editor(attribute: .date, key: $parser.keys.date, proxy: proxy)
+                Editor(attribute: .amount, key: $parser.keys.amount, proxy: proxy)
+                Editor(attribute: .description, key: $parser.keys.description, proxy: proxy)
             }
         }
         .scrollIndicators(.never)
@@ -216,24 +173,16 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                Form(for: records.selected ?? .undefined, width: proxy.size.width)
+                Form(for: records.selected?.parser ?? .undefined, width: proxy.size.width)
             }
         }
         .animation(.scroll, value: target)
     }
     
-    
-    @ViewBuilder private func Listed(attribute: Attributes, statement: Statement) -> some View {
-        ForEach(statement.attributes, id: \.self) { phrase in
-            
-                HStack {
-                    Text(phrase)
-                    Spacer()
-                }
-            
-            }
-        }
-        /*
+    /*
+    @ViewBuilder private func Listed(attribute: Attributes, found array: [String]) -> some View {
+
+
         if statement.attributes.isEmpty {
             HStack {
                 Text("Enter a Regular Expression")
@@ -255,22 +204,25 @@ struct Documents: View {
         }
          */
     
-    
-    @ViewBuilder private func Form(for statement: Statement, width: CGFloat) -> some View {
+    @ViewBuilder private func Form(for parser: Parser, width: CGFloat) -> some View {
         ScrollViewReader { proxy in
             HStack(spacing: 8) {
-                Parsers(parser: statement.parser ?? .undefined, proxy: proxy)
+                Keys(parser: parser, proxy: proxy)
                 ScrollView(.vertical) {
-                    VStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8) {
                         ForEach(Attributes.allCases.indices, id: \.self) { index in
                             ExpandingParagraph(isExpanded: $areExpanded[index]) {
                                 Text(Attributes.allCases[index].rawValue.label.capitalized)
                             } content: {
-                                Listed(attribute: Attributes.allCases[index], statement: statement)
+                                ForEach(parser.buffer(for: Attributes.allCases[index]), id: \.self) { phrase in
+                                    HStack {
+                                        Text(phrase)
+                                        Spacer()
+                                    }
+                                }
                             }
                             .id(Attributes.allCases[index].rawValue.label)
                         }
-                        //undefined
                     }
                 }
                 .frame(width: 0.7*width)
@@ -320,8 +272,6 @@ struct Documents: View {
                 Text(Account.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
                 Text(Description.label)
-                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
-                Text(Code.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)
                 Text(Amount.label)
                     .bound(by: Capsule(style: .continuous), fill: .linearDark)

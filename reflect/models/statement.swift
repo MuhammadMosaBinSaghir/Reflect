@@ -34,21 +34,17 @@ final class Statement: Identifiable {
     let type: String
     var error: StatementError?
     var parser: Parser?
-    let source: [[String]]
     
     //TO MANT UI UPDATES CAUSE ATTRIBUTES
-    //DONT IMEDIATLY RECALCULATE, ONLY ON SUBMIT, CAUSE WHY CALCULATE WHEN STILL TYPING OR WHEN USER STOPPED TYPING
-    //NOW U HAVE UNIQUE, SO DONT REDEFINE IT!
-    //MIGHT GET TO DELETE ROW IN PHRASE
-    //mmight be better to just use [[String]] than to chunch it later
-    //remove SwiftAlgorithms
+    //DONT IMEDIATLY RECALCULATE, USE SEARCH DEPT
     //remove Phrase
     //REMOVE .BMO
-    
-    var attributes: [String] {
-        guard let parser = self.parser else { return .empty }
-        return parser.searching(in: source, for: .account)
-    }
+    //implement search depth
+    //implement which row got it
+    //FocusState: when something click, it goes there and opens it, then on next goes to next field/ then done
+    //undefined list
+    //proxy works as soon as your typing
+    //found 78 occurences of "DEBIT" and they were processed as .debit
     
     init(name: String = "Unknown", type: String = "unknown", error: StatementError) {
         self.date = .now
@@ -56,16 +52,14 @@ final class Statement: Identifiable {
         self.type = type
         self.error = error
         self.parser = nil
-        self.source = .empty
     }
     
-    init(date: Date = .now, name: String, type: String, parser: Parser, data: String) {
+    init(date: Date = .now, name: String, type: String, data: String) {
         self.date = date
         self.name = name
         self.type = type
         self.error = nil
-        self.parser = parser
-        self.source = Parser.breakdown(data)
+        self.parser = Parser(source: data)
     }
     
     static let undefined: Statement = .init(error: .undefined)

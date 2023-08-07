@@ -118,4 +118,7 @@ fastlane/test_output
 
 iOSInjectionProject/
 
+# example data
+reflect/extensions/model\ examples.swift
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,swift
