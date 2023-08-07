@@ -33,7 +33,6 @@
 		C3E4F0C12A6855230076D37C /* errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E4F0C02A6855230076D37C /* errors.swift */; };
 		C3E816A42A72D7BA00B9E3F2 /* parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E816A32A72D7BA00B9E3F2 /* parser.swift */; };
 		C3E9491E2A7B4C2F00169CFC /* regex parsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E9491D2A7B4C2F00169CFC /* regex parsing.swift */; };
-		C3E949262A7B58BC00169CFC /* model examples.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E949252A7B58BC00169CFC /* model examples.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,7 +75,6 @@
 		C3E816A32A72D7BA00B9E3F2 /* parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = parser.swift; sourceTree = "<group>"; };
 		C3E9491B2A7B4C2F00169CFC /* testing.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = testing.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3E9491D2A7B4C2F00169CFC /* regex parsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "regex parsing.swift"; sourceTree = "<group>"; };
-		C3E949252A7B58BC00169CFC /* model examples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "model examples.swift"; sourceTree = "<group>"; };
 		C3EABC482A7950F0009BB4B8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -193,7 +191,6 @@
 				C3C3B1DF2A6343510083A775 /* view extensions.swift */,
 				C3061EF02A6827E400A41DC4 /* layout extensions.swift */,
 				C3C3B1E12A6343650083A775 /* native extensions.swift */,
-				C3E949252A7B58BC00169CFC /* model examples.swift */,
 				C3E4F0BE2A68411C0076D37C /* model extensions.swift */,
 			);
 			path = extensions;
@@ -326,7 +323,6 @@
 				C3E4F0BF2A68411C0076D37C /* model extensions.swift in Sources */,
 				C3C3B1D92A6342F70083A775 /* modal.swift in Sources */,
 				C3C3B1D72A6342ED0083A775 /* contents.swift in Sources */,
-				C3E949262A7B58BC00169CFC /* model examples.swift in Sources */,
 				C3BA37D02A71F7D700ACC60B /* account.swift in Sources */,
 				C3C3B1BE2A60D80C0083A775 /* app.swift in Sources */,
 				C3BA37DE2A71F96900ACC60B /* amount.swift in Sources */,
