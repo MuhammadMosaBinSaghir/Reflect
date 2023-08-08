@@ -10,6 +10,14 @@ final class Statement: Identifiable {
     var error: StatementError?
     var parser: Parser?
     
+    //change opacity of textfield
+    //Column lock and columb search, column select
+
+    //Bubble in bubble for number of items to the left
+    //Quick select row
+    //Capture
+    //Multi attribue
+    //delete expanding and header line?
     //found 78 occurences of "DEBIT" and they were processed as .debit
     //remove unused articles when using template
     //undefined list

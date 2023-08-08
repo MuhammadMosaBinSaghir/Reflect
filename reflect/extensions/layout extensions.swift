@@ -25,15 +25,24 @@ extension CGFloat {
 }
 
 extension ShapeStyle where Self == Color {
-    static var light: Color { .cyan }
-    static var dark: Color { .blue }
+    static var light: Color { .blue }
+    static var dark: Color { .indigo }
+    static var bubble: Color { .primary.opacity(0.05) }
 }
 
 extension ShapeStyle where Self == LinearGradient {
-    static var linearDark: LinearGradient { .init(colors: [.dark, .dark], startPoint: .leading, endPoint: .trailing) }
-    static var linearLight: LinearGradient { .init(colors: [.light, .light], startPoint: .leading, endPoint: .trailing) }
-    static var linearThemed: LinearGradient { .init(colors: [.dark, .light], startPoint: .leading, endPoint: .trailing) }
-    static var linearGrayed: LinearGradient { .init(colors: [.gray.opacity(0.5), .gray.opacity(0.75)], startPoint: .leading, endPoint: .trailing) }
+    static var linearDark: LinearGradient {
+        .init(colors: [.dark, .dark], startPoint: .leading, endPoint: .trailing)
+    }
+    static var linearLight: LinearGradient {
+        .init(colors: [.light, .light], startPoint: .leading, endPoint: .trailing)
+    }
+    static var linearThemed: LinearGradient {
+        .init(colors: [.dark, .light], startPoint: .leading, endPoint: .trailing)
+    }
+    static var linearGrayed: LinearGradient {
+        .init(colors: [.gray.opacity(0.5), .gray.opacity(0.75)], startPoint: .leading, endPoint: .trailing)
+    }
 }
 
 extension Font {

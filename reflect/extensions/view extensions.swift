@@ -1,11 +1,22 @@
 import SwiftUI
 
 extension View {
-    func bound<T: Shape, S: ShapeStyle>(by shape: T, fill background: S) -> some View {
-        self.modifier(Bound(shape: shape, background: background))
+    func pilled<S: ShapeStyle>(fill background: S) -> some View {
+        self.modifier(Pilled(background: background))
+    }
+    func boxed<S: ShapeStyle>(fill background: S) -> some View {
+        self.modifier(Boxed(background: background))
     }
 }
 
 extension ScrollTargetBehavior where Self == CenteredScrollTargetBehavior {
     static var centered: CenteredScrollTargetBehavior { .init() }
+}
+
+extension Shape where Self == Circle {
+  static var circle: Self { .init() }
+}
+
+extension Shape where Self == Rectangle {
+  static var rectangle: Self { .init() }
 }

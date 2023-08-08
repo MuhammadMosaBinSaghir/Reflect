@@ -120,7 +120,7 @@ struct Dropbox: View {
             .frame(width: 80, height: 32, alignment: .leading)
             .padding(.trailing, 8)
             Text(statement.error?.rawValue ?? "invalid error")
-                .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                .pilled(fill: .linearThemed)
             Spacer()
             Puller()
         }
@@ -140,28 +140,50 @@ struct Dropbox: View {
     }
 }
 
-struct Keys: View {
+struct Forms: View {
     @Bindable var parser: Parser
-    @State var proxy: ScrollViewProxy
     
     var body: some View {
         ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 8) {
-                Editor(attribute: .account, key: $parser.keys.account, proxy: proxy)
-                Editor(attribute: .date, key: $parser.keys.date, proxy: proxy)
-                Editor(attribute: .amount, key: $parser.keys.amount, proxy: proxy)
-                Editor(attribute: .description, key: $parser.keys.description, proxy: proxy)
+                Editor(
+                    attribute: .account,
+                    count: parser.accounts.count,
+                    column: parser.accounts.column,
+                    key: $parser.keys.account
+                ) {
+                    Content(for: parser.accounts)
+                }
             }
         }
-        .scrollIndicators(.never)
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
+    }
+    
+    @ViewBuilder private func Content(for match: Parser.Match) -> some View {
+        if !match.results.isEmpty {
+            ForEach(match.results.sorted(by: >), id: \.key) { key, count in
+                HStack(spacing: 4) {
+                    Text(count.formatted())
+                        .boxed(fill: .bubble)
+                    Text(key)
+                    Spacer()
+                }
+                .padding(0)
+            }
+        } else {
+            HStack(spacing: 4) {
+                Text("no matches")
+                Spacer()
+            }
+            .padding(4)
+        }
     }
 }
 
 struct Documents: View {
     @Environment(\.records) private var records
     @State private var target: Statement.ID?
-    
-    @State private var areExpanded: [Bool] = Array(repeating: true, count: Attributes.allCases.count)
     
     var body: some View {
         GeometryReader { proxy in
@@ -173,62 +195,10 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                Form(for: records.selected?.parser ?? .undefined, width: proxy.size.width)
+                Forms(parser: records.selected?.parser ?? .undefined)
             }
         }
         .animation(.scroll, value: target)
-    }
-    
-    @ViewBuilder private func Form(for parser: Parser, width: CGFloat) -> some View {
-        ScrollViewReader { proxy in
-            HStack(spacing: 8) {
-                Keys(parser: parser, proxy: proxy)
-                ScrollView(.vertical) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(Array(zip(Attributes.allCases.indices, Attributes.allCases)), id: \.0) { (index, attribute) in
-                            let match = parser.buffer(for: attribute)
-                            ExpandingParagraph(isExpanded: $areExpanded[index]) {
-                                HStack {
-                                    Text("^[\(match.count) \(attribute.rawValue.label)](inflect: true)")
-                                    Spacer()
-                                    Text(match.column?.formatted() ?? "undefined")
-                                        .frame(minWidth: 16, minHeight: 16)
-                                        .bound(by: Capsule(style: .continuous), fill: .linearGrayed)
-                                }
-                            } content: {
-                                Matches(match.results)
-                            }
-                            .id(attribute.rawValue.label)
-                        }
-                    }
-                }
-                .frame(width: 0.7*width)
-                .scrollIndicators(.hidden)
-                .scrollContentBackground(.hidden)
-                .animation(.transition, value: areExpanded)
-            }
-        }
-    }
-    
-    @ViewBuilder private func Matches(_ dictionary: [String: Int]) -> some View {
-        if dictionary.isEmpty {
-            HStack {
-                Text("Enter a Regular Expression")
-                    .foregroundStyle(.placeholder)
-                Spacer()
-            }
-        } else {
-            ForEach(dictionary.sorted(by: >), id: \.key) { key, value in
-                HStack(spacing: 8) {
-                    Text(key)
-                    Spacer()
-                    Text(value.formatted())
-                        .frame(minWidth: 16, minHeight: 16)
-                        .bound(by: Capsule(style: .continuous), fill: .linearGrayed)
-                }
-                .padding(0)
-            }
-        }
     }
     
     @ViewBuilder private func Badges() -> some View {
@@ -266,13 +236,13 @@ struct Documents: View {
             .frame(width: 80, height: 32, alignment: .leading)
             TagStack(spacing: 4) {
                 Text(Date.label)
-                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                    .pilled(fill: .linearThemed)
                 Text(Account.label)
-                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                    .pilled(fill: .linearThemed)
                 Text(Description.label)
-                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                    .pilled(fill: .linearThemed)
                 Text(Amount.label)
-                    .bound(by: Capsule(style: .continuous), fill: .linearDark)
+                    .pilled(fill: .linearThemed)
             }
             .frame(width: 192)
             Paddle(edge: .trailing) { target = records.select(.next) }

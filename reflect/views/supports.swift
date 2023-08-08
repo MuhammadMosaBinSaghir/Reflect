@@ -15,7 +15,7 @@ struct Background: NSViewRepresentable {
 struct Container: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
-            .fill(.primary.opacity(0.05))
+            .fill(.bubble)
     }
 }
 
@@ -64,90 +64,63 @@ struct Paddle: View {
     }
 }
 
-struct Header: View {
-    let label: String
-    let icon: String
-    
-    var body: some View {
-        HStack {
-            Text(label.capitalized)
-            Spacer()
-            Image(systemName: icon)
-                .foregroundStyle(.primary)
-                .symbolRenderingMode(.monochrome)
-        }
-        .bound(
-            by: RoundedRectangle(cornerRadius: 8, style: .continuous),
-            fill: .linearGrayed
-        )
-    }
-}
-
 struct Paragraph<Header: View, Content: View>: View {
     @ViewBuilder let header: () -> Header
     @ViewBuilder let content: () -> Content
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 4) {
             header()
             .zIndex(1)
-            .padding(2)
             content()
         }
         .font(.content)
-        .background(Container())
     }
 }
 
-struct ExpandingParagraph<Header: View, Content: View>: View {
-    @Binding var isExpanded: Bool
-    @ViewBuilder var header: () -> Header
-    @ViewBuilder var content: () -> Content
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 0) {
-                header()
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .imageScale(.large)
-                    .rotationEffect(isExpanded ? .zero : .degrees(-90))
-                    .onTapGesture {
-                        withAnimation(.transition) {
-                            isExpanded.toggle()
-                        }
-                    }
-            }
-            .padding(8)
-            .foregroundStyle(.linearDark)
-            .background(Container())
-            if(isExpanded) {
-                VStack(spacing: 4) {
-                    content()
-                }
-                .padding(8)
-                .background(Container())
-            }
-        }
-        .font(.content)
-    }
-}
-
-struct Editor: View {
+struct Editor<Content: View>: View {
     let attribute: Attributes
+    var count: Int
+    var column: Int?
     @Binding var key: String
-    @State var proxy: ScrollViewProxy
+    @ViewBuilder let content: () -> Content
+    
+    var label: String {
+        switch count {
+        case 1: attribute.rawValue.label
+        default: attribute.rawValue.label + "s"
+        }
+    }
     
     var body: some View {
         Paragraph {
-            Header(label: attribute.rawValue.label, icon: attribute.rawValue.icon)
+            HStack(spacing: 4) {
+                Text("\(count) " + label)
+                    .boxed(fill: .linearThemed)
+                TextField("regular expression", text: $key, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .boxed(fill: key.isEmpty ? .linearGrayed : .linearThemed)
+                if column != nil {
+                    Text("column \(column!)")
+                        .boxed(fill: .linearThemed)
+                        .transition(.asymmetric(
+                            insertion: .push(from: .trailing),
+                            removal: .push(from: .leading)
+                        ))
+                }
+                Image(systemName: "lock.slash")
+                    .boxed(fill: .linearThemed)
+            }
         } content: {
-            TextField("Type a Regular Expresssion", text: $key, axis: .vertical)
-                .padding(8)
-                .textFieldStyle(.plain)
-                .lineLimit(2, reservesSpace: true)
-                .onSubmit { proxy.scrollTo(attribute.rawValue.label, anchor: .top) }
+            VStack(spacing: 4) {
+                content()
+            }
+            .padding(4)
+            .background(Container())
+            .transition(.push(from: .top))
         }
+        .animation(.transition, value: count)
+        .animation(.transition, value: column)
     }
 }
 
