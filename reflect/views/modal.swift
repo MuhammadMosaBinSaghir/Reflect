@@ -149,10 +149,16 @@ struct Forms: View {
                 Editor(
                     attribute: .account,
                     count: parser.accounts.count,
-                    column: parser.accounts.column,
                     key: $parser.keys.account
                 ) {
                     Content(for: parser.accounts)
+                }
+                Editor(
+                    attribute: .date,
+                    count: parser.dates.count,
+                    key: $parser.keys.date
+                ) {
+                    Content(for: parser.dates)
                 }
             }
         }
@@ -166,17 +172,21 @@ struct Forms: View {
                 HStack(spacing: 4) {
                     Text(count.formatted())
                         .boxed(fill: .bubble)
-                    Text(key)
-                    Spacer()
+                    HStack(spacing: 4) {
+                        Text(key)
+                        Text(match.converts)
+                        Spacer()
+                    }
+                    .boxed(fill: .bubble)
                 }
-                .padding(0)
             }
         } else {
             HStack(spacing: 4) {
-                Text("no matches")
+                Text("There are no matches")
+                    .foregroundStyle(.placeholder)
                 Spacer()
             }
-            .padding(4)
+            .boxed(fill: .bubble)
         }
     }
 }

@@ -69,7 +69,7 @@ struct Paragraph<Header: View, Content: View>: View {
     @ViewBuilder let content: () -> Content
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 8) {
             header()
             .zIndex(1)
             content()
@@ -81,7 +81,6 @@ struct Paragraph<Header: View, Content: View>: View {
 struct Editor<Content: View>: View {
     let attribute: Attributes
     var count: Int
-    var column: Int?
     @Binding var key: String
     @ViewBuilder let content: () -> Content
     
@@ -100,27 +99,14 @@ struct Editor<Content: View>: View {
                 TextField("regular expression", text: $key, axis: .vertical)
                     .textFieldStyle(.plain)
                     .boxed(fill: key.isEmpty ? .linearGrayed : .linearThemed)
-                if column != nil {
-                    Text("column \(column!)")
-                        .boxed(fill: .linearThemed)
-                        .transition(.asymmetric(
-                            insertion: .push(from: .trailing),
-                            removal: .push(from: .leading)
-                        ))
-                }
-                Image(systemName: "lock.slash")
-                    .boxed(fill: .linearThemed)
             }
         } content: {
             VStack(spacing: 4) {
                 content()
             }
-            .padding(4)
-            .background(Container())
             .transition(.push(from: .top))
         }
         .animation(.transition, value: count)
-        .animation(.transition, value: column)
     }
 }
 

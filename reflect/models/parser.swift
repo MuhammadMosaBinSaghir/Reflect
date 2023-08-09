@@ -14,11 +14,10 @@ final class Parser {
     }
     
     struct Match {
-        var column: Int?
-        var count: Int
         var results: [String: Int]
+        var count: Int
         
-        static func empty() -> Self { .init(count: 0, results: .empty) }
+        static func empty() -> Self { .init(results: .empty, count: 0) }
     }
     
     var definition: String
@@ -54,17 +53,17 @@ final class Parser {
         guard let regex = Self.regex(from: self.key(for: attribute)) else { return .empty() }
         guard let index = phrases.firstIndex(where: { $0.contains { $0.contains(regex) } } ) else { return .empty() }
         let column = phrases[index].firstIndex { $0.contains(regex) }!
-        
         let matches: [String] = (index..<phrases.count).compactMap {
             guard phrases[$0].count > column else { return nil }
             return phrases[$0][column]
         }
-
         let uniques = matches.reduce(into: [:]) { dictionary, element in
             dictionary[element, default: 0] += 1
         }
-        
-        return .init(column: Int(column), count: matches.count, results: uniques)
+        let converts = uniques.keys.map {
+            attribute.rawValue.parse($0)
+        }
+        return .init(results: uniques, count: matches.count)
     }
     
     static func regex(from key: String) -> Regex<Substring>? {
