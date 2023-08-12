@@ -5,6 +5,8 @@ extension String {
         func parse(_ account: Account?) -> String? {
             account?.type.rawValue
         }
+        
+        static let shared = AccountParseStrategy()
     }
     
     struct AccountFormatStyle: ParseableFormatStyle {
@@ -14,7 +16,7 @@ extension String {
      
         func format(_ word: String?) -> Account? {
             guard let word else { return nil }
-            guard let type = Account.AccountType(rawValue: word) else { return nil }
+            guard let type = Account.AccountType(rawValue: word.lowercased()) else { return nil }
             return Account(type: type)
         }
     }
@@ -29,6 +31,8 @@ extension String {
         func parse(_ amount: Amount?) -> String? {
             amount?.worth.formatted(.currency(code: "CAD"))
         }
+        
+        static let shared = AmountParseStrategy()
     }
     
     struct AmountFormatStyle: ParseableFormatStyle {
@@ -49,35 +53,13 @@ extension String {
 }
 
 extension String {
-    struct DescriptionParseStrategy: ParseStrategy {
-        func parse(_ description: Description?) -> String? {
-            guard let text = description?.text else { return nil }
-            return text.split(separator: " ").filter { !$0.isEmpty }.joined(separator: " ")
-        }
-    }
-    
-    struct DescriptionFormatStyle: ParseableFormatStyle {
-        var parseStrategy: DescriptionParseStrategy {
-            return DescriptionParseStrategy()
-        }
-     
-        func format(_ word: String?) -> Description? {
-            guard let word else { return nil }
-            return Description(text: word)
-        }
-    }
-    
-    func formatted(_ formatStyle: DescriptionFormatStyle) -> Description? {
-        formatStyle.format(self)
-    }
-}
-
-extension String {
     struct DateParseStrategy: ParseStrategy {
         func parse(_ date: Date?) -> String? {
             guard let date else { return nil }
             return date.formatted(date: .long, time: .omitted)
         }
+        
+        static let shared = DateParseStrategy()
     }
     
     struct DateFormatStyle: ParseableFormatStyle {
@@ -102,6 +84,44 @@ extension String {
     }
 }
 
+extension String {
+    struct DescriptionParseStrategy: ParseStrategy {
+        func parse(_ description: Description?) -> String? {
+            guard let text = description?.text else { return nil }
+            return text.split(separator: " ").filter { !$0.isEmpty }.joined(separator: " ")
+        }
+        
+        static let shared = DescriptionParseStrategy()
+    }
+    
+    struct DescriptionFormatStyle: ParseableFormatStyle {
+        var parseStrategy: DescriptionParseStrategy {
+            return DescriptionParseStrategy()
+        }
+     
+        func format(_ word: String?) -> Description? {
+            guard let word else { return nil }
+            return Description(text: word)
+        }
+    }
+    
+    func formatted(_ formatStyle: DescriptionFormatStyle) -> Description? {
+        formatStyle.format(self)
+    }
+}
+
+extension String {
+    func formatted<A: Attributable>(type: A.Type) -> A? {
+        guard let attribute = Attributes(rawValue: type) else { return nil }
+        switch(attribute) {
+        case .account: return formatted(.account) as? A
+        case .amount: return formatted(.amount) as? A
+        case .date: return formatted(.date) as? A
+        case .description: return formatted(.description) as? A
+        }
+    }
+}
+
 extension FormatStyle where Self == String.AccountFormatStyle {
     static var account: String.AccountFormatStyle {
         String.AccountFormatStyle()
@@ -123,16 +143,5 @@ extension FormatStyle where Self == String.DateFormatStyle {
 extension FormatStyle where Self == String.DescriptionFormatStyle {
     static var description: String.DescriptionFormatStyle {
         String.DescriptionFormatStyle()
-    }
-}
-
-extension String {
-    func formatted(attribute: Attributes) -> (any Attributable)? {
-        switch(attribute) {
-        case .account: formatted(.account)
-        case .amount: formatted(.amount)
-        case .date: formatted(.date)
-        case .description: formatted(.description)
-        }
     }
 }

@@ -1,8 +1,6 @@
-//
-//  date.swift
-//  reflect
-//
-//  Created by Muhammad Saghir on 2023-08-10.
-//
-
 import Foundation
+
+extension Date: Attributable {
+    static let label: String = "date"
+    static let icon: String = "calendar"
+}

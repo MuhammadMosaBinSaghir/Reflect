@@ -151,14 +151,14 @@ struct Forms: View {
                     count: parser.accounts.count,
                     key: $parser.keys.account
                 ) {
-                    Content(for: parser.accounts)
+                    Results(for: parser.accounts)
                 }
                 Editor(
                     attribute: .date,
                     count: parser.dates.count,
                     key: $parser.keys.date
                 ) {
-                    Content(for: parser.dates)
+                    Results(for: parser.dates)
                 }
             }
         }
@@ -166,15 +166,19 @@ struct Forms: View {
         .scrollContentBackground(.hidden)
     }
     
-    @ViewBuilder private func Content(for match: Parser.Match) -> some View {
+    @ViewBuilder private func Results<A: Attributable>(for match: Parser.Match<A>) -> some View {
         if !match.results.isEmpty {
-            ForEach(match.results.sorted(by: >), id: \.key) { key, count in
+            ForEach(match.results, id: \.word) { result in
                 HStack(spacing: 4) {
-                    Text(count.formatted())
+                    Text(result.count.formatted())
                         .boxed(fill: .bubble)
                     HStack(spacing: 4) {
-                        Text(key)
-                        Text(match.converts)
+                        Text(result.word)
+                        if let attribute = result.attribute {
+                            Text(formatted(attribute: attribute) ?? "undefined")
+                        } else {
+                            Text("is not an \(A.label)")
+                        }
                         Spacer()
                     }
                     .boxed(fill: .bubble)
@@ -187,6 +191,28 @@ struct Forms: View {
                 Spacer()
             }
             .boxed(fill: .bubble)
+        }
+    }
+    
+    private func formatted<A: Attributable>(attribute: A) -> String? {
+        guard let type = Attributes(rawValue: A.self) else { return nil }
+        switch type {
+        case .account:
+            guard let account = attribute as? Account else { return nil }
+            guard let formatted = account.formatted() else { return nil }
+            return formatted
+        case .amount:
+            guard let amount = attribute as? Amount else { return nil }
+            guard let formatted = amount.formatted() else { return nil }
+            return formatted
+        case .date:
+            guard let date = attribute as? Date else { return nil }
+            guard let formatted = date.formatted() else { return nil }
+            return formatted
+        case .description:
+            guard let description = attribute as? Description else { return nil }
+            guard let formatted = description.formatted() else { return nil }
+            return formatted
         }
     }
 }

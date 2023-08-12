@@ -13,57 +13,68 @@ final class Parser {
         static func empty() -> Self { .init(account: .empty, date: .empty, amount: .empty, description: .empty) }
     }
     
-    struct Match {
-        var results: [String: Int]
+    struct Match<A: Attributable> {
+        var results: [Result<A>]
         var count: Int
         
-        static func empty() -> Self { .init(results: .empty, count: 0) }
+        static func empty() -> Self { Match(results: [Result<A>](), count: 0) }
+    }
+    
+    struct Result<A: Attributable> {
+        var word: String
+        var count: Int
+        var attribute: A?
     }
     
     var definition: String
     var keys: Keys
     var source: [[String]]
     
-    var accounts: Match { searching(in: source, for: .account) }
-    var dates: Match { searching(in: source, for: .date) }
-    var amounts: Match { searching(in: source, for: .amount) }
-    var descriptions: Match { searching(in: source, for: .description) }
+    var accounts: Match<Account> { searching(source) }
+    var dates: Match<Date> { searching(source) }
+    var amounts: Match<Amount> { searching(source) }
+    var descriptions: Match<Description> { searching(source) }
     
     static let undefined = Parser(source: .empty)
     
-    func buffer(for attribute: Attributes) -> Match {
+    init(definition: String = .empty, keys: Keys = .empty(), source data: String) {
+        self.definition = definition
+        self.keys = keys
+        self.source = Self.breakdown(data)
+    }
+    
+    func key<A: Attributable>(for type: A.Type) -> String? {
+        guard let attribute = Attributes(rawValue: type) else { return nil }
         switch attribute {
-        case .account: self.accounts
-        case .date: self.dates
-        case .amount: self.amounts
-        case .description: self.descriptions
+        case .account: return self.keys.account
+        case .amount: return self.keys.amount
+        case .date: return self.keys.date
+        case .description: return self.keys.description
         }
     }
     
-    func key(for attribute: Attributes) -> String {
-        switch attribute {
-        case .account: self.keys.account
-        case .date: self.keys.date
-        case .amount: self.keys.amount
-        case .description: self.keys.description
-        }
-    }
-    
-    func searching(in phrases: [[String]], for attribute: Attributes) -> Match {
-        guard let regex = Self.regex(from: self.key(for: attribute)) else { return .empty() }
+    func searching<A: Attributable>(_ phrases: [[String]]) -> Match<A> {
+        guard let key = self.key(for: A.self) else { return .empty() }
+        guard let regex = Self.regex(from: key) else { return .empty() }
         guard let index = phrases.firstIndex(where: { $0.contains { $0.contains(regex) } } ) else { return .empty() }
         let column = phrases[index].firstIndex { $0.contains(regex) }!
         let matches: [String] = (index..<phrases.count).compactMap {
             guard phrases[$0].count > column else { return nil }
             return phrases[$0][column]
         }
-        let uniques = matches.reduce(into: [:]) { dictionary, element in
+        let words = matches.reduce(into: [:]) { dictionary, element in
             dictionary[element, default: 0] += 1
         }
-        let converts = uniques.keys.map {
-            attribute.rawValue.parse($0)
+        let attributes = words.reduce(into: [String: A?]()) { dictionary, element in
+            dictionary[element.key] = element.key.formatted(type: A.self)
         }
-        return .init(results: uniques, count: matches.count)
+        let results: [Result<A>] = words.map { word, count in
+            guard let attribute = attributes[word] else {
+                return Result(word: word, count: count, attribute: nil)
+            }
+            return Result(word: word, count: count, attribute: attribute)
+        }
+        return Match(results: results, count: matches.count)
     }
     
     static func regex(from key: String) -> Regex<Substring>? {
@@ -89,10 +100,5 @@ final class Parser {
             }
         }
     }
-    
-    init(definition: String = .empty, keys: Keys = .empty(), source data: String) {
-        self.definition = definition
-        self.keys = keys
-        self.source = Self.breakdown(data)
-    }
+
 }
