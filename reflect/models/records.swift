@@ -45,10 +45,10 @@ final class Records {
         let type = url.pathExtension == "" ? "folder" : url.pathExtension.lowercased()
         guard type == "csv" else { addUnsupported(name: name, type: type); return }
         guard let dropped = try? Data(contentsOf: url) else { addUndecodable(name: name, type: type); return }
-        guard let data = String(data: dropped, encoding: .utf8) else { addUndecodable(name: name, type: type); return }
-        guard !data.isEmpty else { addBlank(name: name, type: type); return }
+        guard let phrases = String(data: dropped, encoding: .utf8) else { addUndecodable(name: name, type: type); return }
+        guard !phrases.isEmpty else { addBlank(name: name, type: type); return }
         let size = statements.count
-        statements.append(.init(name: name, type: type, data: data))
+        statements.append(.init(name: name, type: type, phrases: phrases))
         statements = statements.unique()
         if statements.count == size { addDuplicate(name: name, type: type) }
     }

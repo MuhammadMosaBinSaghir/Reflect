@@ -140,83 +140,6 @@ struct Dropbox: View {
     }
 }
 
-struct Forms: View {
-    @Bindable var parser: Parser
-    
-    var body: some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 8) {
-                Editor(
-                    attribute: .account,
-                    count: parser.accounts.count,
-                    key: $parser.keys.account
-                ) {
-                    Results(for: parser.accounts)
-                }
-                Editor(
-                    attribute: .date,
-                    count: parser.dates.count,
-                    key: $parser.keys.date
-                ) {
-                    Results(for: parser.dates)
-                }
-            }
-        }
-        .scrollIndicators(.hidden)
-        .scrollContentBackground(.hidden)
-    }
-    
-    @ViewBuilder private func Results<A: Attributable>(for match: Parser.Match<A>) -> some View {
-        if !match.results.isEmpty {
-            ForEach(match.results, id: \.word) { result in
-                HStack(spacing: 4) {
-                    Text(result.count.formatted())
-                        .boxed(fill: .bubble)
-                    HStack(spacing: 4) {
-                        Text(result.word)
-                        if let attribute = result.attribute {
-                            Text(formatted(attribute: attribute) ?? "undefined")
-                        } else {
-                            Text("is not an \(A.label)")
-                        }
-                        Spacer()
-                    }
-                    .boxed(fill: .bubble)
-                }
-            }
-        } else {
-            HStack(spacing: 4) {
-                Text("There are no matches")
-                    .foregroundStyle(.placeholder)
-                Spacer()
-            }
-            .boxed(fill: .bubble)
-        }
-    }
-    
-    private func formatted<A: Attributable>(attribute: A) -> String? {
-        guard let type = Attributes(rawValue: A.self) else { return nil }
-        switch type {
-        case .account:
-            guard let account = attribute as? Account else { return nil }
-            guard let formatted = account.formatted() else { return nil }
-            return formatted
-        case .amount:
-            guard let amount = attribute as? Amount else { return nil }
-            guard let formatted = amount.formatted() else { return nil }
-            return formatted
-        case .date:
-            guard let date = attribute as? Date else { return nil }
-            guard let formatted = date.formatted() else { return nil }
-            return formatted
-        case .description:
-            guard let description = attribute as? Description else { return nil }
-            guard let formatted = description.formatted() else { return nil }
-            return formatted
-        }
-    }
-}
-
 struct Documents: View {
     @Environment(\.records) private var records
     @State private var target: Statement.ID?
@@ -231,10 +154,22 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                Forms(parser: records.selected?.parser ?? .undefined)
+                Forms()
             }
         }
         .animation(.scroll, value: target)
+    }
+    
+    @ViewBuilder private func Forms() -> some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Attributes.allCases, id: \.hashValue) { a in
+                    Form(attribute: a.rawValue, source: .empty)
+                }
+            }
+        }
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
     }
     
     @ViewBuilder private func Badges() -> some View {

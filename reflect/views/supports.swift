@@ -78,18 +78,30 @@ struct Paragraph<Header: View, Content: View>: View {
     }
 }
 
-struct Editor<Content: View>: View {
-    let attribute: Attributes
-    var count: Int
-    @Binding var key: String
-    @ViewBuilder let content: () -> Content
+struct Form<A: Attributable>: View {
+    struct Match {
+        var word: String
+        var count: Int
+        var attribute: A?
+    }
     
-    var label: String {
+    @State var attribute: A.Type
+    @State var source: [[String]]
+    @State private var count: Int = 0
+    @State private var key: String = .empty
+    
+    private var label: String {
         switch count {
-        case 1: attribute.rawValue.label
-        default: attribute.rawValue.label + "s"
+        case 1: A.label
+        default: A.label + "s"
         }
     }
+    private var regex: Regex<Substring>? {
+        guard !key.isEmpty else { return nil }
+        do { return try Regex(key) }
+        catch { return nil }
+    }
+    private var matches: [Match] { search() }
     
     var body: some View {
         Paragraph {
@@ -102,11 +114,83 @@ struct Editor<Content: View>: View {
             }
         } content: {
             VStack(spacing: 4) {
-                content()
+                Matches()
             }
             .transition(.push(from: .top))
         }
         .animation(.transition, value: count)
+    }
+    
+    private func search() -> [Match] {
+        guard let regex else { return .empty }
+        guard let index = source.firstIndex(where: { $0.contains { $0.contains(regex) } } ) else { return .empty }
+        let column = source[index].firstIndex { $0.contains(regex) }!
+        let matches: [String] = (index..<source.count).compactMap {
+            guard source[$0].count > column else { return nil }
+            return source[$0][column]
+        }
+        self.count = matches.count
+        let words = matches.reduce(into: [:]) { dictionary, element in
+            dictionary[element, default: 0] += 1
+        }
+        let attributes = words.reduce(into: [String: A?]()) { dictionary, element in
+            dictionary[element.key] = element.key.formatted(type: A.self)
+        }
+        return words.map { word, count in
+            guard let attribute = attributes[word] else {
+                return Match(word: word, count: count, attribute: nil)
+            }
+            return Match(word: word, count: count, attribute: attribute)
+        }
+    }
+    private func formatted(attribute: A) -> String? {
+        guard let type = Attributes(rawValue: A.self) else { return nil }
+        switch type {
+        case .account:
+            guard let account = attribute as? Account else { return nil }
+            guard let formatted = account.formatted() else { return nil }
+            return formatted
+        case .amount:
+            guard let amount = attribute as? Amount else { return nil }
+            guard let formatted = amount.formatted() else { return nil }
+            return formatted
+        case .date:
+            guard let date = attribute as? Date else { return nil }
+            guard let formatted = date.formatted() else { return nil }
+            return formatted
+        case .description:
+            guard let description = attribute as? Description else { return nil }
+            guard let formatted = description.formatted() else { return nil }
+            return formatted
+        }
+    }
+    
+    @ViewBuilder private func Matches() -> some View {
+        if !matches.isEmpty {
+            ForEach(matches, id: \.word) { match in
+                HStack(spacing: 4) {
+                    Text(match.count.formatted())
+                        .boxed(fill: .bubble)
+                    HStack(spacing: 4) {
+                        Text(match.word)
+                        if let attribute = match.attribute {
+                            Text(formatted(attribute: attribute) ?? "undefined")
+                        } else {
+                            Text("is not an \(A.label)")
+                        }
+                        Spacer()
+                    }
+                    .boxed(fill: .bubble)
+                }
+            }
+        } else {
+            HStack(spacing: 4) {
+                Text("There are no matches")
+                    .foregroundStyle(.placeholder)
+                Spacer()
+            }
+            .boxed(fill: .bubble)
+        }
     }
 }
 

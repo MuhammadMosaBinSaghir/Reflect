@@ -1,8 +1,8 @@
 import Foundation
 
-enum Attributes: CaseIterable { case account, date, amount, description }
-
-extension Attributes: RawRepresentable {
+enum Attributes: CaseIterable, RawRepresentable {
+    case account, date, amount, description
+    
     typealias RawValue = any Attributable.Type
     
     init?(rawValue: RawValue) {
@@ -22,5 +22,9 @@ extension Attributes: RawRepresentable {
         case .amount: Amount.self
         case .description: Description.self
         }
+    }
+    
+    func type() -> some Attributable {
+        self.rawValue.
     }
 }
