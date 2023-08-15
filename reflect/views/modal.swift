@@ -10,7 +10,7 @@ struct Dropbox: View {
 
     var body: some View {
         VStack {
-            Container()
+            Bubble()
                 .overlay {
                     VStack(spacing: 16) {
                         Folder()
@@ -58,7 +58,7 @@ struct Dropbox: View {
                     }
                     .padding(4)
                     .foregroundStyle(.dark)
-                    .background(Container())
+                    .background(Bubble())
                     .onTapGesture { expand = false }
                     Trash()
                 }
@@ -82,7 +82,7 @@ struct Dropbox: View {
             }
             .padding(4)
             .foregroundColor(.dark)
-            .background(Container())
+            .background(Bubble())
             .onTapGesture { expand = false; records.errors.removeAll(); }
         }
     }
@@ -127,7 +127,7 @@ struct Dropbox: View {
         .font(.content)
         .padding(.trailing, 4)
         .padding([.top, .bottom, .leading], 16)
-        .background(Container())
+        .background(Bubble())
     }
     
     @ViewBuilder private func Folder() -> some View {
@@ -154,18 +154,19 @@ struct Documents: View {
                     Dots()
                 }
                 Badges()
-                Forms()
+                Forms(source: records.selected?.data ?? .empty)
             }
         }
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Forms() -> some View {
+    @ViewBuilder private func Forms(source: [[String]]) -> some View {
         ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Attributes.allCases, id: \.hashValue) { a in
-                    Form(attribute: a.rawValue, source: .empty)
-                }
+                Form(attribute: Account.self, source: source)
+                Form(attribute: Amount.self, source: source)
+                Form(attribute: Date.self, source: source)
+                Form(attribute: Description.self, source: source)
             }
         }
         .scrollIndicators(.hidden)
@@ -220,7 +221,7 @@ struct Documents: View {
         }
         .padding(8)
         .font(.content)
-        .background(Container())
+        .background(Bubble())
     }
     
     @ViewBuilder private func Dots() -> some View {
@@ -232,7 +233,7 @@ struct Documents: View {
             }
         }
         .padding(8)
-        .background(Container())
+        .background(Bubble())
     }
     
     private func anchor(for phase: ScrollTransitionPhase) -> UnitPoint {

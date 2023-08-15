@@ -23,8 +23,4 @@ enum Attributes: CaseIterable, RawRepresentable {
         case .description: Description.self
         }
     }
-    
-    func type() -> some Attributable {
-        self.rawValue.
-    }
 }

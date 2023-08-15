@@ -5,7 +5,7 @@ struct Boxed<S: ShapeStyle>: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .frame(minWidth: 16)
+            .frame(minWidth: 20)
             .padding(6)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)

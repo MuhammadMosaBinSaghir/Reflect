@@ -37,7 +37,6 @@
 		C3E4F0BD2A683A9B0076D37C /* records.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E4F0BC2A683A9B0076D37C /* records.swift */; };
 		C3E4F0BF2A68411C0076D37C /* model extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E4F0BE2A68411C0076D37C /* model extensions.swift */; };
 		C3E4F0C12A6855230076D37C /* errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E4F0C02A6855230076D37C /* errors.swift */; };
-		C3E816A42A72D7BA00B9E3F2 /* parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E816A32A72D7BA00B9E3F2 /* parser.swift */; };
 		C3E9491E2A7B4C2F00169CFC /* regex parsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E9491D2A7B4C2F00169CFC /* regex parsing.swift */; };
 /* End PBXBuildFile section */
 
@@ -84,7 +83,6 @@
 		C3E4F0BC2A683A9B0076D37C /* records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = records.swift; sourceTree = "<group>"; };
 		C3E4F0BE2A68411C0076D37C /* model extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "model extensions.swift"; sourceTree = "<group>"; };
 		C3E4F0C02A6855230076D37C /* errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = errors.swift; sourceTree = "<group>"; };
-		C3E816A32A72D7BA00B9E3F2 /* parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = parser.swift; sourceTree = "<group>"; };
 		C3E9491B2A7B4C2F00169CFC /* testing.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = testing.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3E9491D2A7B4C2F00169CFC /* regex parsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "regex parsing.swift"; sourceTree = "<group>"; };
 		C3EABC482A7950F0009BB4B8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -189,7 +187,6 @@
 			children = (
 				C3BA37E12A71FE3900ACC60B /* attributable */,
 				C3E4F0BA2A683A540076D37C /* transaction.swift */,
-				C3E816A32A72D7BA00B9E3F2 /* parser.swift */,
 				C3E4F0B62A683A190076D37C /* statement.swift */,
 				C3E4F0BC2A683A9B0076D37C /* records.swift */,
 			);
@@ -356,7 +353,6 @@
 				C3BA37DE2A71F96900ACC60B /* amount.swift in Sources */,
 				C3C3B1E02A6343510083A775 /* view extensions.swift in Sources */,
 				C3C3B1DB2A6343080083A775 /* window.swift in Sources */,
-				C3E816A42A72D7BA00B9E3F2 /* parser.swift in Sources */,
 				C3C3B1E42A6343720083A775 /* view modifiers.swift in Sources */,
 				C3E4F0C12A6855230076D37C /* errors.swift in Sources */,
 				C3BA37D82A71F8B700ACC60B /* description.swift in Sources */,
