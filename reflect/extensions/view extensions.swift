@@ -1,5 +1,11 @@
 import SwiftUI
 
+extension Color: Colorful {}
+extension AngularGradient: Colorful {}
+extension EllipticalGradient: Colorful {}
+extension RadialGradient: Colorful {}
+extension LinearGradient: Colorful {}
+
 extension View {
     func pilled<S: ShapeStyle>(fill background: S) -> some View {
         self.modifier(Pilled(background: background))

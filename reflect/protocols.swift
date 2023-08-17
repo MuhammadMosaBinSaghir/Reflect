@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 protocol Attributable: Hashable {
     static var label: String { get }
@@ -6,6 +7,8 @@ protocol Attributable: Hashable {
     
     func formatted<S: CustomFormatStyle>(_ style: S) -> S.FormatOutput? where S.FormatInput == Self?
 }
+
+protocol Colorful: View, ShapeStyle {}
 
 protocol CustomFormatStyle: FormatStyle {}
 

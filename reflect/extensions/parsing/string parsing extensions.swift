@@ -56,7 +56,7 @@ extension String {
     struct DateParseStrategy: ParseStrategy {
         func parse(_ date: Date?) -> String? {
             guard let date else { return nil }
-            return date.formatted(date: .long, time: .omitted)
+            return date.formatted(date: .abbreviated, time: .omitted)
         }
         
         static let shared = DateParseStrategy()
@@ -69,7 +69,7 @@ extension String {
      
         func format(_ word: String?) -> Date? {
             guard let word else { return nil }
-            let format = Date.FormatString(stringLiteral: word)
+            let format = Date.FormatString(stringLiteral: "yyyyMMdd")
             let strategy = Date.ParseStrategy(
                 format: format,
                 locale: .current,

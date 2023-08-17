@@ -14,22 +14,35 @@ struct Background: NSViewRepresentable {
 
 struct Bubble: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
-            .fill(.bubble)
+        RoundedRectangle.primary.fill(.bubble)
     }
 }
 
-struct FillingBubble<Content: View>: View {
+struct Filling<C: Colorful, S: Shape, V: View>: View {
     let alignment: Alignment
-    @ViewBuilder let content: () -> Content
+    let color: C
+    let shape: S
+    let content: V
     
     var body: some View {
         ZStack(alignment: alignment) {
-            Color.bubble
-            content()
+            color
+            content
                 .padding(6)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .clipShape(shape)
+    }
+    
+    init(
+        alignment: Alignment = .center,
+        color: C = Color.bubble,
+        shape: S = RoundedRectangle.secondary,
+        @ViewBuilder content: () -> V
+    ) {
+        self.alignment = alignment
+        self.color = color
+        self.shape = shape
+        self.content = content()
     }
 }
 
@@ -87,22 +100,16 @@ struct Form<A: Attributable>: View {
     
     let attribute: A.Type
     let source: [[String]]
+    @Binding var key: String
+    
     private let columns = [
         GridItem(.fixed(32), spacing: 4),
         GridItem(.flexible(), spacing: 4),
         GridItem(.fixed(88), spacing: 4)
     ]
-    @State private var key: String = .empty
-    
-    private var label: String {
-        switch count {
-        case 1: A.label
-        default: A.label + "s"
-        }
-    }
     private var regex: Regex<Substring>? {
         guard !key.isEmpty else { return nil }
-        do { return try Regex(key) }
+        do { return try Regex("^"+key) }
         catch { return nil }
     }
     private var count: Int {
@@ -135,30 +142,19 @@ struct Form<A: Attributable>: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: 4, pinnedViews: [.sectionHeaders]) {
             Section {
-                if matches.isEmpty { NoMatches() }
-                else {
-                    ForEach(matches, id: \.word) { match in
-                        FillingBubble(alignment: .center) { Text(match.count.formatted()) }
-                        FillingBubble(alignment: .leading) { Text(match.word) }
-                        FillingBubble(alignment: .center) {
-                            Text(formatted(attribute: match.attribute) ?? "?")
-                        }
+                ForEach(matches, id: \.word) { match in
+                    Filling {
+                        Text(match.count.formatted())
+                            .monospacedDigit()
+                    }
+                    Filling(alignment: .leading) { Text(match.word) }
+                    Filling(alignment: .trailing) {
+                        Text(formatted(attribute: match.attribute) ?? "?")
+                            .monospacedDigit()
                     }
                 }
             } header: {
-                HStack(spacing: 4) {
-                    Text(count.formatted())
-                        .monospacedDigit()
-                        .boxed(fill: .linearThemed)
-                    TextField("Regex", text: $key, axis: .vertical)
-                        .textFieldStyle(.plain)
-                        .boxed(fill: key.isEmpty ? .linearGrayed : .linearThemed)
-                    Text("formatted as")
-                        .boxed(fill: .linearThemed)
-                    Text(label)
-                        .frame(minWidth: 76)
-                        .boxed(fill: .linearThemed)
-                }
+                header()
             }
         }
         .font(.content)
@@ -188,10 +184,66 @@ struct Form<A: Attributable>: View {
         }
     }
     
-    @ViewBuilder private func NoMatches() -> some View {
-        Color.clear
-        FillingBubble(alignment: .leading) { Text("Expression").foregroundStyle(.placeholder) }
-        FillingBubble(alignment: .center) { Text("?") }
+    @ViewBuilder private func header() -> some View {
+        Grid(horizontalSpacing: 4) {
+            GridRow {
+                if !key.isEmpty {
+                    Filling(color: .linearThemed) {
+                        Text(count.formatted())
+                            .monospacedDigit()
+                    }
+                    .frame(width: 32)
+                    .transition(.move(edge: .leading))
+                }
+                ZStack(alignment: .leading) {
+                    TextEditor(text: $key)
+                        .frame(maxHeight: 16)
+                        .scrollIndicators(.hidden)
+                        .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
+                    if key.isEmpty {
+                        Text("Enter an expression for the \(A.label)s column")
+                            .foregroundStyle(.placeholder)
+                            .padding(.leading, 10)
+                    }
+                }
+                if !key.isEmpty {
+                    HStack(spacing: 4) {
+                        Filling(color: .linearThemed) { Text("as") }
+                            .frame(width: 32)
+                        Filling(color: .linearThemed) { Text(A.label) }
+                            .frame(width: 88)
+                    }
+                    .transition(.move(edge: .trailing))
+                }
+            }
+        }
+    }
+}
+
+
+struct Forms: View {
+    let source: [[String]]
+    
+    @State private var accountKey: String = .empty
+    @State private var amountKey: String = .empty
+    @State private var dateKey: String = .empty
+    @State private var descriptionKey: String = .empty
+    
+    var body: some View {
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 8) {
+                Form(attribute: Account.self, source: source, key: $accountKey)
+                Form(attribute: Amount.self, source: source, key: $amountKey)
+                Form(attribute: Date.self, source: source, key: $dateKey)
+                Form(attribute: Description.self, source: source, key: $descriptionKey)
+            }
+        }
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
+        .animation(.transition, value: accountKey)
+        .animation(.transition, value: amountKey)
+        .animation(.transition, value: dateKey)
+        .animation(.transition, value: descriptionKey)
     }
 }
 

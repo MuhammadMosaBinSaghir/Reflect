@@ -24,6 +24,11 @@ extension CGFloat {
     static let height = Height()
 }
 
+extension Shape where Self == RoundedRectangle {
+    static var primary: RoundedRectangle { RoundedRectangle(cornerRadius: 8, style: /*@START_MENU_TOKEN@*/.continuous/*@END_MENU_TOKEN@*/) }
+    static var secondary: RoundedRectangle { RoundedRectangle(cornerRadius: 6, style: /*@START_MENU_TOKEN@*/.continuous/*@END_MENU_TOKEN@*/) }
+}
+
 extension ShapeStyle where Self == Color {
     static var light: Color { .blue }
     static var dark: Color { .indigo }
@@ -31,6 +36,9 @@ extension ShapeStyle where Self == Color {
 }
 
 extension ShapeStyle where Self == LinearGradient {
+    static var linearBubble: LinearGradient {
+        .init(colors: [.bubble, .bubble], startPoint: .leading, endPoint: .trailing)
+    }
     static var linearDark: LinearGradient {
         .init(colors: [.dark, .dark], startPoint: .leading, endPoint: .trailing)
     }

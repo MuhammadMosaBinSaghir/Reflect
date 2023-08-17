@@ -8,11 +8,12 @@ struct Boxed<S: ShapeStyle>: ViewModifier {
             .frame(minWidth: 20)
             .padding(6)
             .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle.secondary
                     .fill(background.shadow(.drop(radius: 4)))
             )
     }
 }
+
 
 struct Pilled<S: ShapeStyle>: ViewModifier {
     var background: S
@@ -27,3 +28,5 @@ struct Pilled<S: ShapeStyle>: ViewModifier {
             )
     }
 }
+
+

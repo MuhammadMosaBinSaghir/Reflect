@@ -160,19 +160,6 @@ struct Documents: View {
         .animation(.scroll, value: target)
     }
     
-    @ViewBuilder private func Forms(source: [[String]]) -> some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 8) {
-                Form(attribute: Account.self, source: source)
-                Form(attribute: Amount.self, source: source)
-                Form(attribute: Date.self, source: source)
-                Form(attribute: Description.self, source: source)
-            }
-        }
-        .scrollIndicators(.hidden)
-        .scrollContentBackground(.hidden)
-    }
-    
     @ViewBuilder private func Badges() -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
