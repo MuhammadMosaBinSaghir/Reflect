@@ -24,6 +24,21 @@ extension CGFloat {
     static let height = Height()
 }
 
+extension Font {
+    static let content: Font = .body
+    static let header: Font = .title3.bold()
+    static let search: Font = .title
+}
+
+extension [GridItem] {
+    static let single = [GridItem(.flexible())]
+    static let triple = [
+        GridItem(.fixed(32), spacing: 4),
+        GridItem(.flexible(), spacing: 4),
+        GridItem(.fixed(88), spacing: 4)
+    ]
+}
+
 extension Shape where Self == RoundedRectangle {
     static var primary: RoundedRectangle { RoundedRectangle(cornerRadius: 8, style: /*@START_MENU_TOKEN@*/.continuous/*@END_MENU_TOKEN@*/) }
     static var secondary: RoundedRectangle { RoundedRectangle(cornerRadius: 6, style: /*@START_MENU_TOKEN@*/.continuous/*@END_MENU_TOKEN@*/) }
@@ -53,8 +68,29 @@ extension ShapeStyle where Self == LinearGradient {
     }
 }
 
-extension Font {
-    static let content: Font = .body
-    static let header: Font = .title3.bold()
-    static let search: Font = .title
+extension Transition where Self == AsymmetricTransition<PushTransition, PushTransition> {
+    static func pop(from edge: Edge) -> AsymmetricTransition<PushTransition, PushTransition> {
+        switch(edge) {
+        case .bottom:
+            AsymmetricTransition(
+                insertion: .push(from: .bottom),
+                removal: .push(from: .top)
+            )
+        case .top:
+            AsymmetricTransition(
+                insertion: .push(from: .top),
+                removal: .push(from: .bottom)
+            )
+        case  .leading:
+            AsymmetricTransition(
+                insertion: .push(from: .leading),
+                removal: .push(from: .trailing)
+            )
+        case  .trailing:
+            AsymmetricTransition(
+                insertion: .push(from: .trailing),
+                removal: .push(from: .leading)
+            )
+        }
+    }
 }

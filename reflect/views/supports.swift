@@ -92,75 +92,68 @@ struct Paddle: View {
 }
 
 struct Form<A: Attributable>: View {
-    struct Match {
+    struct Match: Equatable {
         var word: String
         var count: Int
         var attribute: A?
     }
+    private let alignment: Alignment = switch A.self {
+    case is Amount.Type: .trailing
+    default: .center
+    }
     
     let attribute: A.Type
     let source: [[String]]
+    
     @Binding var key: String
     
-    private let columns = [
-        GridItem(.fixed(32), spacing: 4),
-        GridItem(.flexible(), spacing: 4),
-        GridItem(.fixed(88), spacing: 4)
-    ]
-    private var regex: Regex<Substring>? {
+    @State private var count: Int = 0
+    @State private var matches: [Match] = .empty
+    
+    var body: some View {
+        LazyVStack(spacing: 4, pinnedViews: [.sectionHeaders]) {
+            Section {
+                matcher()
+            } header: {
+                header()
+            }
+        }
+        .animation(.transition, value: count)
+        .animation(.transition, value: matches)
+    }
+    
+    private func reset() {
+        count = 0
+        matches = .empty
+    }
+    private func regex(from key: String) -> Regex<Substring>? {
         guard !key.isEmpty else { return nil }
         do { return try Regex("^"+key) }
         catch { return nil }
     }
-    private var count: Int {
-        matches.reduce(0) { count, match in
-            count + match.count
-        }
-    }
-    private var matches: [Match] {
-        guard let regex else { return .empty }
-        guard let index = source.firstIndex(where: { $0.contains { $0.contains(regex) } } ) else { return .empty }
+    private func search(for regex: Regex<Substring>) {
+        print("searching for \(A.label)")
+        guard let index = source.firstIndex(where: { $0.contains { $0.contains(regex) } } )
+        else { matches = .empty; return }
         let column = source[index].firstIndex { $0.contains(regex) }!
         let words: [String] = (index..<source.count).compactMap {
             guard source[$0].count > column else { return nil }
             return source[$0][column]
         }
+        count = words.count
         let uniques = words.reduce(into: [:]) { dictionary, element in
             dictionary[element, default: 0] += 1
         }
         let attributes = uniques.reduce(into: [String: A?]()) { dictionary, element in
             dictionary[element.key] = element.key.formatted(type: A.self)
         }
-        return uniques.map { word, count in
+        matches = uniques.map { word, count in
             guard let attribute = attributes[word] else {
                 return Match(word: word, count: count, attribute: nil)
             }
             return Match(word: word, count: count, attribute: attribute)
         }
     }
-    
-    var body: some View {
-        LazyVGrid(columns: columns, spacing: 4, pinnedViews: [.sectionHeaders]) {
-            Section {
-                ForEach(matches, id: \.word) { match in
-                    Filling {
-                        Text(match.count.formatted())
-                            .monospacedDigit()
-                    }
-                    Filling(alignment: .leading) { Text(match.word) }
-                    Filling(alignment: .trailing) {
-                        Text(formatted(attribute: match.attribute) ?? "?")
-                            .monospacedDigit()
-                    }
-                }
-            } header: {
-                header()
-            }
-        }
-        .font(.content)
-        .animation(.transition, value: count)
-    }
-
     private func formatted(attribute: A?) -> String? {
         guard let attribute else { return nil }
         guard let type = Attributes(rawValue: A.self) else { return nil }
@@ -184,67 +177,101 @@ struct Form<A: Attributable>: View {
         }
     }
     
+    @ViewBuilder private func counter() -> some View {
+        if !key.isEmpty {
+            Filling(color: .linearThemed) {
+                Text(count.formatted())
+                    .monospacedDigit()
+            }
+            .frame(width: 32)
+            .transition(.pop(from: .leading))
+        }
+    }
+    @ViewBuilder private func binding() -> some View {
+        ZStack(alignment: .leading) {
+            TextEditor(text: $key)
+                .frame(maxHeight: 16)
+                .scrollIndicators(.hidden)
+                .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
+                .onChange(of: key) { older, newer in
+                    guard !key.isEmpty else { reset(); return }
+                    guard let regex = regex(from: newer) else { return }
+                    search(for: regex)
+                }
+            if key.isEmpty {
+                Text("Enter an expression for the \(A.label)s column")
+                    .foregroundStyle(.placeholder)
+                    .padding(.leading, 10)
+            }
+        }
+    }
+    @ViewBuilder private func format() -> some View {
+        if !key.isEmpty {
+            HStack(spacing: 4) {
+                Filling(color: .linearThemed) { Text("as") }
+                    .frame(width: 32)
+                Filling(color: .linearThemed) { Text(A.label) }
+                    .frame(width: 88)
+            }
+            .transition(.pop(from: .trailing))
+        }
+    }
     @ViewBuilder private func header() -> some View {
         Grid(horizontalSpacing: 4) {
             GridRow {
-                if !key.isEmpty {
-                    Filling(color: .linearThemed) {
-                        Text(count.formatted())
-                            .monospacedDigit()
-                    }
-                    .frame(width: 32)
-                    .transition(.move(edge: .leading))
-                }
-                ZStack(alignment: .leading) {
-                    TextEditor(text: $key)
-                        .frame(maxHeight: 16)
-                        .scrollIndicators(.hidden)
-                        .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
-                    if key.isEmpty {
-                        Text("Enter an expression for the \(A.label)s column")
-                            .foregroundStyle(.placeholder)
-                            .padding(.leading, 10)
-                    }
-                }
-                if !key.isEmpty {
-                    HStack(spacing: 4) {
-                        Filling(color: .linearThemed) { Text("as") }
-                            .frame(width: 32)
-                        Filling(color: .linearThemed) { Text(A.label) }
-                            .frame(width: 88)
-                    }
-                    .transition(.move(edge: .trailing))
-                }
+                counter()
+                binding()
+                format()
             }
+        }
+    }
+    @ViewBuilder private func placeholder() -> some View {
+        Color.red
+    }
+    @ViewBuilder private func matcher() -> some View {
+        ForEach(matches, id: \.word) { match in
+            HStack(spacing: 4) {
+                Filling {
+                    Text(match.count.formatted())
+                        .monospacedDigit()
+                }
+                .frame(width: 32)
+                Filling(alignment: .leading) {
+                    Text(match.word)
+                }
+                Filling(alignment: match.attribute == nil ? .center : alignment) {
+                    Text(formatted(attribute: match.attribute) ?? "?")
+                        .monospacedDigit()
+                }
+                .frame(width: 88)
+            }
+            .transition(.pop(from: .top))
         }
     }
 }
 
-
-struct Forms: View {
-    let source: [[String]]
+struct Sstack: Layout {
     
-    @State private var accountKey: String = .empty
-    @State private var amountKey: String = .empty
-    @State private var dateKey: String = .empty
-    @State private var descriptionKey: String = .empty
     
-    var body: some View {
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 8) {
-                Form(attribute: Account.self, source: source, key: $accountKey)
-                Form(attribute: Amount.self, source: source, key: $amountKey)
-                Form(attribute: Date.self, source: source, key: $dateKey)
-                Form(attribute: Description.self, source: source, key: $descriptionKey)
-            }
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard !subviews.isEmpty else { return .zero }
+        let dimensions = subviews.map { $0.sizeThatFits(.unspecified) }
+        let height = dimensions.reduce(CGFloat.zero) { height, dimension in
+            height + dimension.height
         }
-        .scrollIndicators(.hidden)
-        .scrollContentBackground(.hidden)
-        .animation(.transition, value: accountKey)
-        .animation(.transition, value: amountKey)
-        .animation(.transition, value: dateKey)
-        .animation(.transition, value: descriptionKey)
+        return CGSize(width: proposal.width ?? .zero, height: height)
     }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard !subviews.isEmpty else { return }
+        var point = CGPoint(x: bounds.minX, y: bounds.minY)
+        let proposals = subviews.map { ProposedViewSize($0.sizeThatFits(.unspecified)) }
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: point, anchor: .zero, proposal: proposal)
+            point.y += proposals[index].height ?? .zero
+        }
+    }
+    
 }
 
 struct TagStack: Layout {
