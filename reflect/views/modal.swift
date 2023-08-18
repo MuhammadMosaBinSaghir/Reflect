@@ -11,6 +11,13 @@ struct Modal: View {
     @State private var dateKey: String = .empty
     @State private var descriptionKey: String = .empty
     
+    @State private var accountsEmpty = true
+    @State private var amountsEmpty = true
+    @State private var datesEmpty = true
+    @State private var descriptionsEmpty = true
+    
+    @State private var contentSize: CGSize = .zero
+    
     var body: some View {
         VStack(spacing: 8) {
             if !records.isEmpty {
@@ -95,17 +102,18 @@ struct Modal: View {
     }
     @ViewBuilder private func Forms() -> some View {
         let source = records.selected?.data ?? .empty
-        ScrollView(.vertical) {
-            VStack(alignment: .leading, spacing: 8) {
-                Form(attribute: Account.self, source: source, key: $accountKey)
-                Form(attribute: Amount.self, source: source, key: $amountKey)
-                Form(attribute: Date.self, source: source, key: $dateKey)
-                Form(attribute: Description.self, source: source, key: $descriptionKey)
+        SsTack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    Form(attribute: Account.self, source: source, key: $accountKey, empty: $accountsEmpty)
+                    Form(attribute: Amount.self, source: source, key: $amountKey, empty: $amountsEmpty)
+                    Form(attribute: Date.self, source: source, key: $dateKey, empty: $datesEmpty)
+                    Form(attribute: Description.self, source: source, key: $descriptionKey, empty: $descriptionsEmpty)
+                }
+                
             }
         }
-        .frame(minHeight: 136, maxHeight: height())
-        .scrollIndicators(.hidden)
-        .scrollContentBackground(.hidden)
+        .background(.red.opacity(0.5))
     }
     @ViewBuilder private func Dropper() -> some View {
         Filling {
@@ -136,11 +144,11 @@ struct Modal: View {
         .transition(.pop(from: .bottom))
     }
     
+    private func isEmpty() -> Bool {
+        accountsEmpty && amountsEmpty && datesEmpty && descriptionsEmpty
+    }
+    
     private func height() -> CGFloat {
-        guard accountKey.isEmpty else { return .infinity }
-        guard amountKey.isEmpty else { return .infinity }
-        guard dateKey.isEmpty else { return .infinity }
-        guard descriptionKey.isEmpty else { return .infinity }
-        return 136
+        isEmpty() ? 136 : .infinity
     }
 }

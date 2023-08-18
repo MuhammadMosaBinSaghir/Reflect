@@ -38,6 +38,7 @@
 		C3E4F0BF2A68411C0076D37C /* model extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E4F0BE2A68411C0076D37C /* model extensions.swift */; };
 		C3E4F0C12A6855230076D37C /* errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E4F0C02A6855230076D37C /* errors.swift */; };
 		C3E9491E2A7B4C2F00169CFC /* regex parsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E9491D2A7B4C2F00169CFC /* regex parsing.swift */; };
+		C3EC14812A8EEAF6005FF995 /* eqwa.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EC14802A8EEAF6005FF995 /* eqwa.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,6 +87,7 @@
 		C3E9491B2A7B4C2F00169CFC /* testing.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = testing.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3E9491D2A7B4C2F00169CFC /* regex parsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "regex parsing.swift"; sourceTree = "<group>"; };
 		C3EABC482A7950F0009BB4B8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C3EC14802A8EEAF6005FF995 /* eqwa.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = eqwa.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,6 +204,7 @@
 				C3C3B1D82A6342F70083A775 /* modal.swift */,
 				C3C3B1DA2A6343080083A775 /* window.swift */,
 				C3C3B1DC2A6343160083A775 /* supports.swift */,
+				C3EC14802A8EEAF6005FF995 /* eqwa.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -354,6 +357,7 @@
 				C3C3B1E02A6343510083A775 /* view extensions.swift in Sources */,
 				C3C3B1DB2A6343080083A775 /* window.swift in Sources */,
 				C3C3B1E42A6343720083A775 /* view modifiers.swift in Sources */,
+				C3EC14812A8EEAF6005FF995 /* eqwa.swift in Sources */,
 				C3E4F0C12A6855230076D37C /* errors.swift in Sources */,
 				C3BA37D82A71F8B700ACC60B /* description.swift in Sources */,
 				C3061EF12A6827E400A41DC4 /* layout extensions.swift in Sources */,

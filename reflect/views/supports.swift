@@ -101,30 +101,29 @@ struct Form<A: Attributable>: View {
     case is Amount.Type: .trailing
     default: .center
     }
+    @Namespace private var namespace
     
     let attribute: A.Type
     let source: [[String]]
     
     @Binding var key: String
+    @Binding var empty: Bool
     
     @State private var count: Int = 0
     @State private var matches: [Match] = .empty
     
     var body: some View {
         LazyVStack(spacing: 4, pinnedViews: [.sectionHeaders]) {
-            Section {
-                matcher()
-            } header: {
-                header()
-            }
+            header()
+            matcher()
         }
-        .animation(.transition, value: count)
-        .animation(.transition, value: matches)
+        .animation(.snappy, value: matches)
     }
     
     private func reset() {
         count = 0
         matches = .empty
+        empty = true
     }
     private func regex(from key: String) -> Regex<Substring>? {
         guard !key.isEmpty else { return nil }
@@ -132,15 +131,16 @@ struct Form<A: Attributable>: View {
         catch { return nil }
     }
     private func search(for regex: Regex<Substring>) {
-        print("searching for \(A.label)")
         guard let index = source.firstIndex(where: { $0.contains { $0.contains(regex) } } )
-        else { matches = .empty; return }
+        else { matches = .empty; empty = true; return }
         let column = source[index].firstIndex { $0.contains(regex) }!
         let words: [String] = (index..<source.count).compactMap {
             guard source[$0].count > column else { return nil }
             return source[$0][column]
         }
         count = words.count
+        guard !words.isEmpty else { matches = .empty; empty = true; return }
+        empty = false
         let uniques = words.reduce(into: [:]) { dictionary, element in
             dictionary[element, default: 0] += 1
         }
@@ -179,54 +179,43 @@ struct Form<A: Attributable>: View {
     
     @ViewBuilder private func counter() -> some View {
         if !key.isEmpty {
-            Filling(color: .linearThemed) {
-                Text(count.formatted())
-                    .monospacedDigit()
-            }
-            .frame(width: 32)
-            .transition(.pop(from: .leading))
+            Text("\(count)")
+                .monospacedDigit()
+                //.transition(.pop(from: .leading))
+                .boxed(fill: .linearThemed)
+                
         }
     }
     @ViewBuilder private func binding() -> some View {
-        ZStack(alignment: .leading) {
-            TextEditor(text: $key)
-                .frame(maxHeight: 16)
-                .scrollIndicators(.hidden)
-                .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
-                .onChange(of: key) { older, newer in
-                    guard !key.isEmpty else { reset(); return }
-                    guard let regex = regex(from: newer) else { return }
-                    search(for: regex)
-                }
-            if key.isEmpty {
-                Text("Enter an expression for the \(A.label)s column")
-                    .foregroundStyle(.placeholder)
-                    .padding(.leading, 10)
-            }
+        CustomTextField(
+            placeholder: "Enter an expression for the \(A.label)s column",
+            text: $key
+        )
+        .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
+        .onChange(of: key) { older, newer in
+            guard !key.isEmpty else { reset(); return }
+            guard let regex = regex(from: newer) else { empty = true; return }
+            search(for: regex)
         }
     }
     @ViewBuilder private func format() -> some View {
         if !key.isEmpty {
             HStack(spacing: 4) {
-                Filling(color: .linearThemed) { Text("as") }
-                    .frame(width: 32)
-                Filling(color: .linearThemed) { Text(A.label) }
-                    .frame(width: 88)
+                Text("as")
+                    .boxed(fill: .linearThemed)
+                Text(A.label)
+                    .frame(width: 76)
+                    .boxed(fill: .linearThemed)
             }
-            .transition(.pop(from: .trailing))
+            //.transition(.pop(from: .trailing))
         }
     }
     @ViewBuilder private func header() -> some View {
-        Grid(horizontalSpacing: 4) {
-            GridRow {
-                counter()
-                binding()
-                format()
-            }
+        HStack(spacing: 4) {
+            counter()
+            binding()
+            format()
         }
-    }
-    @ViewBuilder private func placeholder() -> some View {
-        Color.red
     }
     @ViewBuilder private func matcher() -> some View {
         ForEach(matches, id: \.word) { match in
@@ -245,33 +234,34 @@ struct Form<A: Attributable>: View {
                 }
                 .frame(width: 88)
             }
-            .transition(.pop(from: .top))
+            //.transition(.pop(from: .top))
         }
     }
 }
 
-struct Sstack: Layout {
-    
-    
+struct SsTack: Layout {
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         guard !subviews.isEmpty else { return .zero }
-        let dimensions = subviews.map { $0.sizeThatFits(.unspecified) }
-        let height = dimensions.reduce(CGFloat.zero) { height, dimension in
-            height + dimension.height
+        guard let proposed = proposal.height else { return .zero }
+        print("proposal width: \(proposal.width), height: \(proposal.height)")
+        for (index, subview) in subviews.enumerated() {
+            let size = subview.sizeThatFits(.unspecified)
+            print("\(index) subview width: \(size.width), height: (\(size.height)")
         }
-        return CGSize(width: proposal.width ?? .zero, height: height)
+        print("---------")
+        let height = subviews[0].sizeThatFits(.unspecified).height
+        let returned = height < proposed ? height : proposed
+        return CGSize(width: proposal.width ?? .zero, height: returned)
     }
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         guard !subviews.isEmpty else { return }
-        var point = CGPoint(x: bounds.minX, y: bounds.minY)
-        let proposals = subviews.map { ProposedViewSize($0.sizeThatFits(.unspecified)) }
-        for (index, subview) in subviews.enumerated() {
-            subview.place(at: point, anchor: .zero, proposal: proposal)
-            point.y += proposals[index].height ?? .zero
+        let point = CGPoint(x: bounds.minX, y: bounds.minY)
+        let p = ProposedViewSize(width: bounds.width, height: bounds.height)
+        for (_, subview) in subviews.enumerated() {
+            subview.place(at: point, proposal: p)
         }
     }
-    
 }
 
 struct TagStack: Layout {
