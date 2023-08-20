@@ -101,13 +101,9 @@ struct Form<A: Attributable>: View {
     case is Amount.Type: .trailing
     default: .center
     }
-    @Namespace private var namespace
     
-    let attribute: A.Type
     let source: [[String]]
-    
     @Binding var key: String
-    @Binding var empty: Bool
     
     @State private var count: Int = 0
     @State private var matches: [Match] = .empty
@@ -123,7 +119,6 @@ struct Form<A: Attributable>: View {
     private func reset() {
         count = 0
         matches = .empty
-        empty = true
     }
     private func regex(from key: String) -> Regex<Substring>? {
         guard !key.isEmpty else { return nil }
@@ -132,15 +127,14 @@ struct Form<A: Attributable>: View {
     }
     private func search(for regex: Regex<Substring>) {
         guard let index = source.firstIndex(where: { $0.contains { $0.contains(regex) } } )
-        else { matches = .empty; empty = true; return }
+        else { matches = .empty; return }
         let column = source[index].firstIndex { $0.contains(regex) }!
         let words: [String] = (index..<source.count).compactMap {
             guard source[$0].count > column else { return nil }
             return source[$0][column]
         }
         count = words.count
-        guard !words.isEmpty else { matches = .empty; empty = true; return }
-        empty = false
+        guard !words.isEmpty else { matches = .empty; return }
         let uniques = words.reduce(into: [:]) { dictionary, element in
             dictionary[element, default: 0] += 1
         }
@@ -187,14 +181,16 @@ struct Form<A: Attributable>: View {
         }
     }
     @ViewBuilder private func binding() -> some View {
+        //PASTE PROBLEM MAKE 
         CustomTextField(
             placeholder: "Enter an expression for the \(A.label)s column",
             text: $key
         )
+        .frame(height: 16)
         .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
         .onChange(of: key) { older, newer in
             guard !key.isEmpty else { reset(); return }
-            guard let regex = regex(from: newer) else { empty = true; return }
+            guard let regex = regex(from: newer) else { return }
             search(for: regex)
         }
     }
@@ -239,28 +235,20 @@ struct Form<A: Attributable>: View {
     }
 }
 
-struct SsTack: Layout {
+struct FittingScrollView: Layout {
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        guard !subviews.isEmpty else { return .zero }
-        guard let proposed = proposal.height else { return .zero }
-        print("proposal width: \(proposal.width), height: \(proposal.height)")
-        for (index, subview) in subviews.enumerated() {
-            let size = subview.sizeThatFits(.unspecified)
-            print("\(index) subview width: \(size.width), height: (\(size.height)")
-        }
-        print("---------")
-        let height = subviews[0].sizeThatFits(.unspecified).height
-        let returned = height < proposed ? height : proposed
-        return CGSize(width: proposal.width ?? .zero, height: returned)
+        let proposed = proposal.replacingUnspecifiedDimensions()
+        guard !subviews.isEmpty else { return proposed }
+        guard subviews.count <= 1 else { return proposed }
+        let fitting = subviews[0].sizeThatFits(.unspecified)
+        guard fitting.height < proposed.height else { return proposed }
+        return CGSize(width: proposed.width, height: fitting.height)
     }
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        guard !subviews.isEmpty else { return }
         let point = CGPoint(x: bounds.minX, y: bounds.minY)
-        let p = ProposedViewSize(width: bounds.width, height: bounds.height)
-        for (_, subview) in subviews.enumerated() {
-            subview.place(at: point, proposal: p)
-        }
+        let proposal = ProposedViewSize(bounds.size)
+        subviews[0].place(at: point, proposal: proposal)
     }
 }
 

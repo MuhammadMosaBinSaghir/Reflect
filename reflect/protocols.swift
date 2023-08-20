@@ -12,6 +12,4 @@ protocol Colorful: View, ShapeStyle {}
 
 protocol CustomFormatStyle: FormatStyle {}
 
-protocol Empty {
-    static var empty: Self { get }
-}
+protocol Empty { static var empty: Self { get } }

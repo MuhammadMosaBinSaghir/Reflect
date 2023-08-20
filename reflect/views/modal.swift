@@ -1,29 +1,38 @@
 import SwiftUI
 
 struct Modal: View {
+    struct SearchScope: Equatable, Identifiable {
+        let id: String
+        let attribute: Attributes
+        var key: String
+        
+        init(attribute: Attributes, key: String = .empty) {
+            self.id = attribute.rawValue.label
+            self.attribute = attribute
+            self.key = key
+        }
+        
+        static func ==(lhs: Self, rhs: Self) -> Bool {
+            return lhs.id == rhs.id && lhs.key == rhs.key
+        }
+    }
     @Environment(\.records) private var records
     
     @State private var target: Statement.ID?
     @State private var imported: Bool = false
-    
-    @State private var accountKey: String = .empty
-    @State private var amountKey: String = .empty
-    @State private var dateKey: String = .empty
-    @State private var descriptionKey: String = .empty
-    
-    @State private var accountsEmpty = true
-    @State private var amountsEmpty = true
-    @State private var datesEmpty = true
-    @State private var descriptionsEmpty = true
-    
-    @State private var contentSize: CGSize = .zero
+    @State private var searches: [SearchScope] = [
+        SearchScope(attribute: .account),
+        SearchScope(attribute: .amount),
+        SearchScope(attribute: .date),
+        SearchScope(attribute: .description),
+    ]
     
     var body: some View {
         VStack(spacing: 8) {
             if !records.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Selector()
-                    Forms()
+                    SearchForms()
                 }
                 .transition(.pop(from: .top))
             }
@@ -32,10 +41,7 @@ struct Modal: View {
         .padding(8)
         .font(.content)
         .animation(.scroll, value: target)
-        .animation(.transition, value: accountKey)
-        .animation(.transition, value: amountKey)
-        .animation(.transition, value: dateKey)
-        .animation(.transition, value: descriptionKey)
+        .animation(.transition, value: searches)
         .animation(.transition, value: records.errors)
         .animation(.transition, value: records.statements)
     }
@@ -100,21 +106,28 @@ struct Modal: View {
             .onChange(of: target) { records.select($1) }
         }
     }
-    @ViewBuilder private func Forms() -> some View {
+    
+    @ViewBuilder private func SearchForm(for attribute: Attributes, source: [[String]], key: Binding<String>) -> some View {
+        switch attribute {
+        case .account: Form<Account>(source: source, key: key)
+        case .amount: Form<Amount>(source: source, key: key)
+        case .date: Form<Date>(source: source, key: key)
+        case .description: Form<Description>(source: source, key: key)
+        }
+    }
+    @ViewBuilder private func SearchForms() -> some View {
         let source = records.selected?.data ?? .empty
-        SsTack {
+        FittingScrollView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    Form(attribute: Account.self, source: source, key: $accountKey, empty: $accountsEmpty)
-                    Form(attribute: Amount.self, source: source, key: $amountKey, empty: $amountsEmpty)
-                    Form(attribute: Date.self, source: source, key: $dateKey, empty: $datesEmpty)
-                    Form(attribute: Description.self, source: source, key: $descriptionKey, empty: $descriptionsEmpty)
+                    ForEach($searches) { $search in
+                        SearchForm(for: search.attribute, source: source, key: $search.key)
+                    }
                 }
-                
             }
         }
-        .background(.red.opacity(0.5))
     }
+    
     @ViewBuilder private func Dropper() -> some View {
         Filling {
             VStack(spacing: 16) {
@@ -142,13 +155,5 @@ struct Modal: View {
             }
         }
         .transition(.pop(from: .bottom))
-    }
-    
-    private func isEmpty() -> Bool {
-        accountsEmpty && amountsEmpty && datesEmpty && descriptionsEmpty
-    }
-    
-    private func height() -> CGFloat {
-        isEmpty() ? 136 : .infinity
     }
 }
