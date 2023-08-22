@@ -109,11 +109,11 @@ struct Form<A: Attributable>: View {
     @State private var matches: [Match] = .empty
     
     var body: some View {
-        LazyVStack(spacing: 4, pinnedViews: [.sectionHeaders]) {
+        LazyVStack(spacing: 4) {
             header()
             matcher()
         }
-        .animation(.snappy, value: matches)
+        .animation(.transition, value: matches)
     }
     
     private func reset() {
@@ -175,13 +175,11 @@ struct Form<A: Attributable>: View {
         if !key.isEmpty {
             Text("\(count)")
                 .monospacedDigit()
-                //.transition(.pop(from: .leading))
                 .boxed(fill: .linearThemed)
-                
+                .transition(.pop(from: .leading))
         }
     }
     @ViewBuilder private func binding() -> some View {
-        //PASTE PROBLEM MAKE 
         CustomTextField(
             placeholder: "Enter an expression for the \(A.label)s column",
             text: $key
@@ -203,7 +201,7 @@ struct Form<A: Attributable>: View {
                     .frame(width: 76)
                     .boxed(fill: .linearThemed)
             }
-            //.transition(.pop(from: .trailing))
+            .transition(.pop(from: .trailing))
         }
     }
     @ViewBuilder private func header() -> some View {
@@ -230,7 +228,6 @@ struct Form<A: Attributable>: View {
                 }
                 .frame(width: 88)
             }
-            //.transition(.pop(from: .top))
         }
     }
 }

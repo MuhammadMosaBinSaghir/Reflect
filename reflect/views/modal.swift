@@ -124,7 +124,10 @@ struct Modal: View {
                         SearchForm(for: search.attribute, source: source, key: $search.key)
                     }
                 }
+                .frame(minHeight: 136)
             }
+           
+            .scrollIndicators(.never)
         }
     }
     
