@@ -109,10 +109,13 @@ struct Form<A: Attributable>: View {
     @State private var matches: [Match] = .empty
     
     var body: some View {
-        LazyVStack(spacing: 4) {
+        VStack(spacing: 4){
             header()
-            matcher()
+            LazyVStack(spacing: 4) {
+                matcher()
+            }
         }
+        .frame(maxHeight: matches.isEmpty ? 28 : .infinity)
         .animation(.transition, value: matches)
     }
     
@@ -184,7 +187,6 @@ struct Form<A: Attributable>: View {
             placeholder: "Enter an expression for the \(A.label)s column",
             text: $key
         )
-        .frame(height: 16)
         .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
         .onChange(of: key) { older, newer in
             guard !key.isEmpty else { reset(); return }
@@ -243,8 +245,8 @@ struct FittingScrollView: Layout {
     }
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard !subviews.isEmpty else { return }
         let point = CGPoint(x: bounds.minX, y: bounds.minY)
-        let proposal = ProposedViewSize(bounds.size)
         subviews[0].place(at: point, proposal: proposal)
     }
 }
