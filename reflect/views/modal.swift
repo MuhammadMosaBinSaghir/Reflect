@@ -1,38 +1,168 @@
 import SwiftUI
 
-struct Modal: View {
-    struct SearchScope: Equatable, Identifiable {
-        let id: String
-        let attribute: Attributes
-        var key: String
-        
-        init(attribute: Attributes, key: String = .empty) {
-            self.id = attribute.rawValue.label
-            self.attribute = attribute
-            self.key = key
+struct Form<A: Attributable>: View {
+    let source: [[String]]
+    @Binding var key: String
+    @State private var count: Int = 0
+    @State private var matches: [Match] = .empty
+    
+    private let alignment: Alignment =
+    switch A.self {
+    case is Amount.Type: .trailing
+    default: .center
+    }
+
+    var body: some View {
+        VStack(spacing: 4){
+            header()
+            if !matches.isEmpty {
+                matcher()
+            }
         }
-        
-        static func ==(lhs: Self, rhs: Self) -> Bool {
-            return lhs.id == rhs.id && lhs.key == rhs.key
+        .animation(.transition, value: key.isEmpty)
+    }
+    
+    private func reset() {
+        count = 0
+        matches = .empty
+    }
+    private func regex(from key: String) -> Regex<Substring>? {
+        guard !key.isEmpty else { return nil }
+        do { return try Regex("^"+key) }
+        catch { return nil }
+    }
+    private func search(for regex: Regex<Substring>) {
+        guard let index = source.firstIndex(where: { $0.contains { $0.contains(regex) } })
+        else { count = 0; matches = .empty; return }
+        let column = source[index].firstIndex { $0.contains(regex) }!
+        let words: [String] = (index..<source.count).compactMap {
+            guard source[$0].count > column else { return nil }
+            return source[$0][column]
+        }
+        count = words.count
+        let uniques = words.reduce(into: [:]) { dictionary, element in
+            dictionary[element, default: 0] += 1
+        }
+        let attributes = uniques.reduce(into: [String: A?]()) { dictionary, element in
+            dictionary[element.key] = element.key.formatted(type: A.self)
+        }
+        matches = uniques.map { word, count in
+            guard let attribute = attributes[word] else {
+                return Match(word: word, count: count, attribute: nil)
+            }
+            return Match(word: word, count: count, attribute: attribute)
         }
     }
+    private func formatted(attribute: A?) -> String? {
+        guard let attribute else { return nil }
+        guard let type = Attributes(rawValue: A.self) else { return nil }
+        switch type {
+        case .account:
+            guard let account = attribute as? Account else { return nil }
+            guard let formatted = account.formatted() else { return nil }
+            return formatted
+        case .amount:
+            guard let amount = attribute as? Amount else { return nil }
+            guard let formatted = amount.formatted() else { return nil }
+            return formatted
+        case .date:
+            guard let date = attribute as? Date else { return nil }
+            guard let formatted = date.formatted() else { return nil }
+            return formatted
+        case .description:
+            guard let description = attribute as? Description else { return nil }
+            guard let formatted = description.formatted() else { return nil }
+            return formatted
+        }
+    }
+    
+    @ViewBuilder private func counter() -> some View {
+        if !key.isEmpty {
+            Filling(color: .linearThemed) {
+                Text("\(count)")
+                    .monospacedDigit()
+            }
+            .frame(width: 32)
+            .transition(.opacity)
+        }
+    }
+    @ViewBuilder private func binding() -> some View {
+        CustomTextField(
+            placeholder: "Enter an expression for the \(A.label)s column",
+            text: $key
+        )
+        .boxed(fill: key.isEmpty ? .linearBubble : .linearThemed)
+        .onChange(of: key) { older, newer in
+            withAnimation(.transition) {
+                guard !key.isEmpty else { reset(); return }
+                guard let regex = regex(from: newer) else { return }
+                search(for: regex)
+            }
+        }
+    }
+    
+    @ViewBuilder private func format() -> some View {
+        if !key.isEmpty {
+            HStack(spacing: 4) {
+                Filling(color: .linearThemed) { Text("as") }
+                    .frame(width: 32)
+                Filling(color: .linearThemed) { Text(A.label) }
+                    .frame(width: 88)
+            }
+            .transition(.opacity)
+        }
+    }
+    @ViewBuilder private func header() -> some View {
+        HStack(spacing: 4) {
+            counter()
+            binding()
+            format()
+        }
+    }
+    @ViewBuilder private func matcher() -> some View {
+        ForEach(matches, id: \.word) { match in
+            HStack(spacing: 4) {
+                Filling {
+                    Text(match.count.formatted())
+                        .monospacedDigit()
+                }
+                .frame(width: 32)
+                Filling(alignment: .leading) {
+                    Text(match.word)
+                }
+                Filling(alignment: match.attribute == nil ? .center : alignment) {
+                    Text(formatted(attribute: match.attribute) ?? "?")
+                        .monospacedDigit()
+                }
+                .frame(width: 88)
+            }
+        }
+    }
+    
+    struct Match: Equatable {
+        var word: String
+        var count: Int
+        var attribute: A?
+    }
+}
+
+struct Modal: View {
     @Environment(\.records) private var records
     
     @State private var target: Statement.ID?
     @State private var imported: Bool = false
-    @State private var searches: [SearchScope] = [
-        SearchScope(attribute: .account),
-        SearchScope(attribute: .amount),
-        SearchScope(attribute: .date),
-        SearchScope(attribute: .description),
-    ]
+    
+    @State private var accountKey: String = .empty
+    @State private var amountKey: String = .empty
+    @State private var dateKey: String = .empty
+    @State private var descriptionKey: String = .empty
     
     var body: some View {
         VStack(spacing: 8) {
             if !records.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Selector()
-                    SearchForms()
+                    Forms()
                 }
                 .transition(.pop(from: .top))
             }
@@ -41,7 +171,6 @@ struct Modal: View {
         .padding(8)
         .font(.content)
         .animation(.scroll, value: target)
-        .animation(.transition, value: searches)
         .animation(.transition, value: records.errors)
         .animation(.transition, value: records.statements)
     }
@@ -107,25 +236,17 @@ struct Modal: View {
         }
     }
     
-    @ViewBuilder private func SearchForm(for attribute: Attributes, source: [[String]], key: Binding<String>) -> some View {
-        switch attribute {
-        case .account: Form<Account>(source: source, key: key)
-        case .amount: Form<Amount>(source: source, key: key)
-        case .date: Form<Date>(source: source, key: key)
-        case .description: Form<Description>(source: source, key: key)
-        }
-    }
-    @ViewBuilder private func SearchForms() -> some View {
+    @ViewBuilder private func Forms() -> some View {
         let source = records.selected?.data ?? .empty
         FittingScrollView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach($searches) { $search in
-                        SearchForm(for: search.attribute, source: source, key: $search.key)
-                    }
-                }
+            ScrollView(.vertical) {
+                Form<Account>(source: source, key: $accountKey)
+                Form<Amount>(source: source, key: $amountKey)
+                Form<Date>(source: source, key: $dateKey)
+                Form<Description>(source: source, key: $descriptionKey)
             }
-            .scrollIndicators(.never)
+            .scrollIndicators(.hidden)
+            .scrollContentBackground(.hidden)
         }
     }
     

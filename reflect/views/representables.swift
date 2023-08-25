@@ -1,12 +1,23 @@
 import SwiftUI
+
+struct Background: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.blendingMode = .behindWindow
+        view.state = .active
+        view.material = .underWindowBackground
+        return view
+    }
     
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
 struct CustomTextField: NSViewRepresentable {
     let placeholder: String
     @Binding var text: String
     
     func makeNSView(context: Context) -> NSTextField {
         let field = NSTextField()
-
         field.focusRingType = .none
         field.isBezeled = false
         field.isBordered = false
@@ -28,9 +39,7 @@ struct CustomTextField: NSViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-}
-
-extension CustomTextField {
+    
     class Coordinator: NSObject, NSTextFieldDelegate {
         var parent: CustomTextField
 
