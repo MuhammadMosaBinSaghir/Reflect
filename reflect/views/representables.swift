@@ -1,47 +1,4 @@
 import SwiftUI
-
-extension AnyTransition {
-    
-    static func myMove(forward: Binding<Bool>) -> AnyTransition {
-        
-        return .asymmetric(
-            
-            insertion: .modifier(
-                
-                active: MyMoveModifier(width: 100, forward: forward),
-                
-                identity: MyMoveModifier(width: 0, forward: .constant(true))
-                
-            ),
-            
-            removal: .modifier(
-                
-                active: MyMoveModifier(width: -100, forward: forward),
-                
-                identity: MyMoveModifier(width: 0, forward: .constant(true))
-                
-            )
-            
-        )
-        
-    }
-    
-}
-
-struct MyMoveModifier: ViewModifier {
-    
-    let width: CGFloat
-    
-    @Binding var forward: Bool
-    
-    
-    
-    func body(content: Content) -> some View {
-        
-        content
-            .offset(x: (forward ? 1 : -1) * width)
-    }
-}
     
 struct CustomTextField: NSViewRepresentable {
     let placeholder: String
